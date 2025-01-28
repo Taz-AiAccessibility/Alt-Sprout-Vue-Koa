@@ -1,30 +1,55 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div class="app">
+    <h1>Image Input Form</h1>
+    <ImageInput v-model="imageUrl" />
+    <SubjectInput v-model="subjects" />
+    <TargetAudienceInput v-model="targetAudience" />
+    <DisplayImage
+      :imageUrl="imageUrl"
+      :subjects="subjects"
+      :targetAudience="targetAudience"
+    />
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+<script lang="ts">
+import { ref } from 'vue';
+import ImageInput from './components/ImageInput.vue';
+import SubjectInput from './components/SubjectInput.vue';
+import TargetAudienceInput from './components/TargetAudienceInput.vue';
+import DisplayImage from './components/DisplayImage.vue';
+
+export default {
+  name: 'App',
+  components: {
+    ImageInput,
+    SubjectInput,
+    TargetAudienceInput,
+    DisplayImage,
+  },
+  setup() {
+    // State management using Composition API
+    const imageUrl = ref<string>('');
+    const subjects = ref<string[]>([]);
+    const targetAudience = ref<string>('');
+
+    return {
+      imageUrl,
+      subjects,
+      targetAudience,
+    };
+  },
+};
+</script>
+
+<style>
+.app {
+  text-align: center;
+  padding: 20px;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
 }
 </style>
