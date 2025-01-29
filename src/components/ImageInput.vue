@@ -1,5 +1,5 @@
 <template>
-  <div class="image-input">
+  <Fragment>
     <label for="imageUrl">Image URL:</label>
     <input
       id="imageUrl"
@@ -8,11 +8,11 @@
       @input="updateImageUrl"
       placeholder="Enter image URL"
     />
-  </div>
+  </Fragment>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue';
+import { defineComponent, Fragment, ref, watch } from 'vue';
 
 export default defineComponent({
   name: 'ImageInput',

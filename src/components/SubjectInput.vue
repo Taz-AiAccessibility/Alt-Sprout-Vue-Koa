@@ -1,5 +1,5 @@
 <template>
-  <div class="subject-input">
+  <Fragment>
     <label for="subjects">Subjects:</label>
     <input
       id="subjects"
@@ -8,11 +8,11 @@
       @input="updateSubjects"
       placeholder="Enter subjects, comma-separated"
     />
-  </div>
+  </Fragment>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue';
+import { defineComponent, Fragment, ref, watch } from 'vue';
 
 export default defineComponent({
   name: 'SubjectInput',
@@ -26,6 +26,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const localSubjects = ref(props.modelValue.join(', '));
 
+    // this may need to change to being just a string instead of an array of subjects
     watch(localSubjects, (newValue) => {
       const subjectsArray = newValue.split(',').map((s) => s.trim());
       emit('update:modelValue', subjectsArray);
