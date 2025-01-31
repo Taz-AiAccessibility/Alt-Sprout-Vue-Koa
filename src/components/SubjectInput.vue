@@ -12,29 +12,27 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, Fragment, ref, watch } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
 
 export default defineComponent({
   name: 'SubjectInput',
   props: {
     modelValue: {
-      type: Array as () => string[],
+      type: String,
       required: true,
     },
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
-    const localSubjects = ref(props.modelValue.join(', '));
+    const localSubjects = ref(props.modelValue);
 
     // this may need to change to being just a string instead of an array of subjects
     watch(localSubjects, (newValue) => {
-      const subjectsArray = newValue.split(',').map((s) => s.trim());
-      emit('update:modelValue', subjectsArray);
+      emit('update:modelValue', newValue);
     });
 
     const updateSubjects = () => {
-      const subjectsArray = localSubjects.value.split(',').map((s) => s.trim());
-      emit('update:modelValue', subjectsArray);
+      emit('update:modelValue', localSubjects.value);
     };
 
     return {

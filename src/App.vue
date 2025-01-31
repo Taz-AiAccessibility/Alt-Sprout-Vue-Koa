@@ -4,18 +4,33 @@
     <form @submit.prevent="handleSubmit">
       <fieldset>
         <legend>Input Image Information</legend>
+        <!-- Image Input (Supports URL and File Upload) -->
         <ImageInput v-model="formData.imageUrl" />
+        <!-- Subject and Context Inputs -->
         <SubjectInput v-model="formData.subjects" />
         <TargetAudienceInput v-model="formData.targetAudience" />
         <button type="submit">Submit</button>
       </fieldset>
     </form>
 
+    <!-- Show loading state -->
+    <p v-if="isLoading">Generating alt text...</p>
+
+    <!-- Display error messages -->
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+
     <!-- Display the submitted values -->
-    <DisplayImage
+    <!-- <DisplayImage
       :imageUrl="imageUrl"
       :subjects="subjects"
       :targetAudience="targetAudience"
+    /> -->
+
+    <!-- Display API Response -->
+    <ResponseDisplay
+      v-if="altTextResult"
+      responseType="Alt Text Result"
+      :responseText="altTextResult"
     />
   </main>
 </template>
@@ -26,6 +41,7 @@ import ImageInput from './components/ImageInput.vue';
 import SubjectInput from './components/SubjectInput.vue';
 import TargetAudienceInput from './components/TargetAudienceInput.vue';
 import DisplayImage from './components/DisplayImage.vue';
+import ResponseDisplay from './components/ResponseDisplay.vue';
 
 export default {
   name: 'App',
@@ -34,27 +50,58 @@ export default {
     SubjectInput,
     TargetAudienceInput,
     DisplayImage,
+    ResponseDisplay,
   },
   setup() {
     // Store the submitted state
-    const imageUrl = ref<string>(
-      'https://www.smuinballet.org/app/uploads/maggie-scaled.jpg'
-    );
-    const subjects = ref<string[]>([]);
+    const imageUrl = ref<string>('');
+    const subjects = ref<string>('');
     const targetAudience = ref<string>('');
+    const isLoading = ref<boolean>(false);
+    const errorMessage = ref<string | null>(null);
+    const altTextResult = ref<any>(null); // Store API response
 
     // Temporary form state
     const formData = reactive({
-      imageUrl: imageUrl.value,
-      subjects: [...subjects.value],
-      targetAudience: targetAudience.value,
+      imageUrl: '',
+      subjects: '',
+      targetAudience: '',
     });
 
     // Form submission handler
-    const handleSubmit = () => {
-      imageUrl.value = formData.imageUrl;
-      subjects.value = [...formData.subjects];
-      targetAudience.value = formData.targetAudience;
+    const handleSubmit = async () => {
+      isLoading.value = true;
+      errorMessage.value = null;
+
+      try {
+        const response = await fetch('http://localhost:3000/alt-text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userUrl: formData.imageUrl,
+            imageContext: formData.subjects,
+            textContext: formData.targetAudience,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Alt Text Response:', data.simple);
+        altTextResult.value = data; // Store response
+
+        // Update state with submitted values
+        imageUrl.value = formData.imageUrl;
+        subjects.value = formData.subjects;
+        targetAudience.value = formData.targetAudience;
+      } catch (error: any) {
+        console.error('Error submitting form:', error);
+        errorMessage.value = error.message || 'Something went wrong';
+      } finally {
+        isLoading.value = false;
+      }
     };
 
     return {
@@ -63,6 +110,9 @@ export default {
       targetAudience,
       formData,
       handleSubmit,
+      isLoading,
+      errorMessage,
+      altTextResult,
     };
   },
 };
