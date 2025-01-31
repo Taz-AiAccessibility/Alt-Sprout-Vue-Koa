@@ -10,8 +10,6 @@
 - **TypeScript-Powered Development**: Enforces type safety and maintainability across the stack.
 - **Flexible Image Inputs**: Supports **image URLs and file uploads** for maximum usability.
 
----
-
 ## 🛠 Tech Stack
 
 ### 🖥️ Frontend: Vue.js + TypeScript
@@ -63,8 +61,6 @@ const response = await openai.chat.completions.create({
 3. **Alt Text is Generated**: AI returns a **simple and detailed alt text description**.
 4. **User Copies and Integrates Alt Text**: Provides better **accessibility** across platforms.
 
----
-
 ## 👥 Original Team Members
 
 - [**Ian Buchanan**](https://github.com/ianbuchanan42)
@@ -72,8 +68,6 @@ const response = await openai.chat.completions.create({
 - [**Julie Hoagland Sorensen**](https://github.com/JulieHoaglandSorensen)
 - [**Warren Cutler**](https://github.com/warren-cutler)
 - [**Ellie Simens**](https://github.com/elliesimens)
-
----
 
 ## 📜 License
 
