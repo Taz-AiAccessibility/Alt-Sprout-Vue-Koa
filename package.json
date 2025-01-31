@@ -2,18 +2,34 @@
   "name": "alt-sprout",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "concurrently \"npm run dev\" \"npm run server\"",
+    "server": "nodemon --watch server --ext ts --exec ts-node --project tsconfig.node.json server/index.ts"
   },
   "dependencies": {
+    "@koa/cors": "^5.0.0",
+    "@koa/router": "^13.1.0",
+    "dotenv": "^16.4.7",
+    "koa": "^2.15.3",
+    "koa-body": "^6.0.1",
+    "openai": "^4.81.0",
     "vue": "^3.5.13"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/koa": "^2.15.0",
+    "@types/koa__cors": "^5.0.0",
+    "@types/koa__router": "^12.0.4",
+    "@types/koa-router": "^7.4.8",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/tsconfig": "^0.7.0",
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
     "typescript": "~5.6.2",
     "vite": "^6.0.5",
     "vue-tsc": "^2.2.0"

@@ -1,5 +1,5 @@
 <template>
-  <div class="subject-input">
+  <Fragment>
     <label for="subjects">Subjects:</label>
     <input
       id="subjects"
@@ -8,7 +8,7 @@
       @input="updateSubjects"
       placeholder="Enter subjects, comma-separated"
     />
-  </div>
+  </Fragment>
 </template>
 
 <script lang="ts">
@@ -18,22 +18,21 @@ export default defineComponent({
   name: 'SubjectInput',
   props: {
     modelValue: {
-      type: Array as () => string[],
+      type: String,
       required: true,
     },
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
-    const localSubjects = ref(props.modelValue.join(', '));
+    const localSubjects = ref(props.modelValue);
 
+    // this may need to change to being just a string instead of an array of subjects
     watch(localSubjects, (newValue) => {
-      const subjectsArray = newValue.split(',').map((s) => s.trim());
-      emit('update:modelValue', subjectsArray);
+      emit('update:modelValue', newValue);
     });
 
     const updateSubjects = () => {
-      const subjectsArray = localSubjects.value.split(',').map((s) => s.trim());
-      emit('update:modelValue', subjectsArray);
+      emit('update:modelValue', localSubjects.value);
     };
 
     return {

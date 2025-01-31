@@ -1,5 +1,5 @@
 <template>
-  <div class="target-audience-input">
+  <Fragment>
     <label for="audience">Target Audience:</label>
     <input
       id="audience"
@@ -8,7 +8,7 @@
       @input="updateAudience"
       placeholder="Enter target audience"
     />
-  </div>
+  </Fragment>
 </template>
 
 <script lang="ts">

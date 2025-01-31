@@ -1,9 +1,9 @@
 <template>
-  <div v-if="imageUrl" class="display-image">
+  <section v-if="imageUrl" class="display-image">
     <img :src="imageUrl" alt="Submitted Image" />
-    <p><strong>Subjects:</strong> {{ subjects.join(', ') }}</p>
+    <p><strong>Subjects:</strong> {{ subjects }}</p>
     <p><strong>Target Audience:</strong> {{ targetAudience }}</p>
-  </div>
+  </section>
 </template>
 
 <script lang="ts">
@@ -17,7 +17,7 @@ export default defineComponent({
       required: true,
     },
     subjects: {
-      type: Array as () => string[],
+      type: String,
       required: true,
     },
     targetAudience: {
