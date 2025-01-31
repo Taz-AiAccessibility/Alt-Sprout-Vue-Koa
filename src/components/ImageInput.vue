@@ -81,7 +81,7 @@ input {
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, PropType } from 'vue';
+import { defineComponent, ref, watch, type PropType } from 'vue';
 
 export default defineComponent({
   name: 'ImageInput',

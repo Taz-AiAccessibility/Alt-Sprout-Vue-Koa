@@ -1,4 +1,5 @@
 <template>
+  <!-- !!!!!!!!!!!!!!!!!!!!!!!!! remove divs !!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
   <div class="response-display">
     <h2>{{ responseType }}</h2>
 
