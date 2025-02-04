@@ -14,6 +14,9 @@
   ],
   "compilerOptions": {
     "forceConsistentCasingInFileNames": true,
-    "strict": true
+    "strict": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["koa", "passport", "koa-passport"],
+    "skipLibCheck": true
   }
 }
