@@ -1,5 +1,4 @@
 <template>
-  <!-- !!!!!!!!!!!!!!!!!!!!!!!!! remove divs !!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
   <div class="response-display">
     <h2>{{ responseType }}</h2>
 
@@ -7,36 +6,60 @@
     <div class="alt-text-section">
       <h3>Simple Description:</h3>
       <p>{{ responseText.simple }}</p>
-      <button
-        @click="copyToClipboard(responseText.simple, 'simple')"
-        @mouseleave="resetTooltip('simple')"
-      >
-        <span class="tooltip" v-if="tooltip.simple">{{ tooltip.simple }}</span>
-        <span v-if="copied.simple">✅</span>
-        <span v-else>📋 Copy</span>
-      </button>
+      <div class="actions">
+        <button
+          @click="copyToClipboard(responseText.simple, 'simple')"
+          @mouseleave="resetTooltip('simple')"
+        >
+          <span class="tooltip" v-if="tooltip.simple">{{
+            tooltip.simple
+          }}</span>
+          <span v-if="copied.simple">✅</span>
+          <span v-else>📋 Copy</span>
+        </button>
+        <!-- !!!!!! add :disabled=liked.simple -->
+        <span
+          class="heart-icon"
+          :class="{ liked: liked.simple, completed: liked.simple }"
+          @click="!liked.simple && toggleLike('simple')"
+        >
+          <span v-if="!liked.simple">✅</span>
+          <span v-else>❤️</span>
+        </span>
+      </div>
     </div>
 
     <!-- Complex Description -->
     <div class="alt-text-section">
       <h3>Complex Description:</h3>
       <p>{{ responseText.complex }}</p>
-      <button
-        @click="copyToClipboard(responseText.complex, 'complex')"
-        @mouseleave="resetTooltip('complex')"
-      >
-        <span class="tooltip" v-if="tooltip.complex">{{
-          tooltip.complex
-        }}</span>
-        <span v-if="copied.complex">✅</span>
-        <span v-else>📋 Copy</span>
-      </button>
+      <div class="actions">
+        <button
+          @click="copyToClipboard(responseText.complex, 'complex')"
+          @mouseleave="resetTooltip('complex')"
+        >
+          <span class="tooltip" v-if="tooltip.complex">{{
+            tooltip.complex
+          }}</span>
+          <span v-if="copied.complex">✅</span>
+          <span v-else>📋 Copy</span>
+        </button>
+        <span
+          class="heart-icon"
+          :class="{ liked: liked.complex, completed: liked.complex }"
+          @click="!liked.complex && toggleLike('complex')"
+        >
+          <span v-if="!liked.complex">✅</span>
+          <span v-else>❤️</span>
+        </span>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, type PropType } from 'vue';
+import TargetAudienceInput from './TargetAudienceInput.vue';
 
 export default defineComponent({
   name: 'ResponseDisplay',
@@ -46,11 +69,21 @@ export default defineComponent({
       required: true,
     },
     responseText: {
-      type: Object as PropType<{ simple: string; complex: string }>,
+      type: Object as PropType<{
+        simple: string;
+        complex: string;
+        description_origin: string;
+        subjects: string;
+        targetAudience: string;
+      }>,
       required: true,
     },
+    userId: {
+      type: String,
+      required: true, // Ensure user ID is passed from parent
+    },
   },
-  setup() {
+  setup(props) {
     const copied = ref<{ simple: boolean; complex: boolean }>({
       simple: false,
       complex: false,
@@ -58,6 +91,11 @@ export default defineComponent({
     const tooltip = ref<{ simple: string | null; complex: string | null }>({
       simple: null,
       complex: null,
+    });
+
+    const liked = ref<{ simple: boolean; complex: boolean }>({
+      simple: false,
+      complex: false,
     });
 
     const copyToClipboard = async (
@@ -85,7 +123,158 @@ export default defineComponent({
       }
     };
 
-    return { copyToClipboard, copied, tooltip, resetTooltip };
+    const toggleLike = async (type: 'simple' | 'complex') => {
+      if (!props.userId) {
+        console.error('❌ User not logged in. Missing userId.');
+        return;
+      }
+
+      const payload = {
+        descriptionType: type,
+        descriptionText: props.responseText[type],
+        descriptionOrigin: props.responseText.description_origin,
+        subjects: props.responseText.subjects,
+        targetAudience: props.responseText.targetAudience,
+      };
+
+      const token = localStorage.getItem('supabase_token'); // ✅ Retrieve stored token
+      if (!token) {
+        console.error('❌ No authentication token found!');
+        return;
+      }
+
+      console.log('📤 Sending like request:', payload);
+      console.log('✅ Token stored:', token);
+      console.log(props.responseText.description_origin);
+
+      try {
+        const response = await fetch('http://localhost:3000/like-description', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`, // ✅ Include token
+          },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to save like');
+        }
+
+        console.log('✅ Like saved:', data);
+
+        // ✅ Mark only this specific description as liked
+        liked.value[type] = true;
+      } catch (error) {
+        console.error('❌ Error saving like:', error);
+      }
+    };
+
+    // const toggleLike = async (type: 'simple' | 'complex') => {
+    //   liked.value[type] = true;
+    //   if (!props.userId) {
+    //     console.error('❌ User not logged in. Missing userId.');
+    //     return;
+    //   }
+
+    //   // ✅ Prevent multiple clicks
+    //   if (liked.value[type]) {
+    //     console.warn(`⚠️ Already liked ${type}, cannot like again.`);
+    //     return;
+    //   }
+
+    //   const payload = {
+    //     descriptionType: type,
+    //     descriptionText: props.responseText[type],
+    //   };
+
+    //   const token = localStorage.getItem('supabase_token'); // ✅ Retrieve stored token
+    //   if (!token) {
+    //     console.error('❌ No authentication token found!');
+    //     return;
+    //   }
+
+    //   console.log('📤 Sending like request:', payload);
+
+    //   try {
+    //     const response = await fetch('http://localhost:3000/like-description', {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //         Authorization: `Bearer ${token}`, // ✅ Include token
+    //       },
+    //       credentials: 'include',
+    //       body: JSON.stringify(payload),
+    //     });
+
+    //     const data = await response.json();
+
+    //     if (!response.ok) {
+    //       throw new Error(data.error || 'Failed to save like');
+    //     }
+
+    //     console.log('✅ Like saved:', data);
+
+    //     // ✅ Update heart state to prevent further clicks
+    //   } catch (error) {
+    //     console.error('❌ Error saving like:', error);
+    //   }
+    // };
+
+    //
+    // const toggleLike = async (type: 'simple' | 'complex') => {
+    //   if (!props.userId) {
+    //     console.error('❌ User not logged in. Missing userId.');
+    //     return;
+    //   }
+
+    //   const payload = {
+    //     descriptionType: type,
+    //     descriptionText: props.responseText[type],
+    //   };
+
+    //   const token = localStorage.getItem('supabase_token'); // ✅ Retrieve stored token
+    //   if (!token) {
+    //     console.error('❌ No authentication token found!');
+    //     return;
+    //   }
+
+    //   console.log('📤 Sending like request:', payload);
+
+    //   try {
+    //     const response = await fetch('http://localhost:3000/like-description', {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //         Authorization: `Bearer ${token}`, // ✅ Include token
+    //       },
+    //       credentials: 'include',
+    //       body: JSON.stringify(payload),
+    //     });
+
+    //     const data = await response.json();
+
+    //     if (!response.ok) {
+    //       throw new Error(data.error || 'Failed to save like');
+    //     }
+
+    //     console.log('✅ Like saved:', data);
+    //   } catch (error) {
+    //     console.error('❌ Error saving like:', error);
+    //   }
+    // };
+
+    return {
+      copyToClipboard,
+      copied,
+      tooltip,
+      resetTooltip,
+      liked,
+      toggleLike,
+    };
   },
 });
 </script>
@@ -156,5 +345,26 @@ button:hover {
   border-radius: 4px;
   white-space: nowrap;
   opacity: 0.9;
+}
+
+/* Heart Icon */
+.heart-icon {
+  cursor: pointer;
+  font-size: 1.5rem;
+  margin-left: 10px;
+  transition: color 0.3s;
+}
+
+.heart-icon.liked {
+  color: red;
+}
+
+/* Actions Container */
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
 }
 </style>

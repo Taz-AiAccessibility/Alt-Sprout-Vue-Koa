@@ -5,7 +5,7 @@ import { supabase } from './supabase';
 
 dotenv.config();
 
-// Define the correct User Type (Override `Express.User`)
+// Define the correct User Type and Override `Express.User`
 export interface User {
   id: string; // UUID from Supabase
   google_id: string;
@@ -25,11 +25,15 @@ declare global {
 
 // Serialize user to session
 passport.serializeUser((user: any, done) => {
+  console.log('🔑 Serializing User:', user);
   done(null, (user as User).id);
 });
 
+// Deserialize
 passport.deserializeUser(async (id: string, done) => {
   try {
+    console.log('🔍 Attempting to deserialize user with ID:', id);
+
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
@@ -38,17 +42,18 @@ passport.deserializeUser(async (id: string, done) => {
 
     if (error || !user) {
       console.error('❌ User not found or Supabase error:', error);
-      return done(null, undefined); // ✅ Use `undefined` instead of `null`
+      return done(null, undefined);
     }
 
+    console.log('✅ Successfully deserialized user:', user);
     return done(null, user);
   } catch (err) {
     console.error('❌ Unexpected error in deserializeUser:', err);
-    return done(null, undefined); // ✅ Ensures `done` is correctly typed
+    return done(null, undefined);
   }
 });
 
-// ✅ Use `passport-oauth2` to get ID token
+// Use `passport-oauth2` to get ID token
 passport.use(
   'google',
   new OAuth2Strategy(
@@ -60,11 +65,13 @@ passport.use(
       callbackURL: process.env.GOOGLE_REDIRECT_URI!,
       scope: ['profile', 'email', 'openid'],
     },
+
+    // !!! how are accessToken and refreshToken used?
     async (accessToken, refreshToken, params, profile, done) => {
       try {
         console.log('✅ Google OAuth Response:', params);
 
-        // ✅ Retrieve `id_token` correctly
+        // Retrieve `id_token` correctly
         const idToken = params.id_token;
 
         if (!idToken) {
@@ -74,7 +81,7 @@ passport.use(
 
         console.log('✅ Google ID Token:', idToken);
 
-        // 🔹 Step 1: Authenticate with Supabase using the ID Token
+        //  1: Authenticate with Supabase using the ID Token
         const { data: authUser, error: authError } =
           await supabase.auth.signInWithIdToken({
             provider: 'google',
@@ -91,7 +98,7 @@ passport.use(
 
         console.log('✅ Supabase Auth User:', authUser);
 
-        // ✅ Ensure `authUser.user` is defined before proceeding
+        // Ensure `authUser.user` is defined before proceeding
         const supabaseUser = authUser.user;
         if (!supabaseUser.id || !supabaseUser.email) {
           console.error(
@@ -101,7 +108,9 @@ passport.use(
           return done(new Error('Supabase user information missing'), false);
         }
 
-        // 🔹 Step 2: Check if user exists in Supabase
+        //  2: Check if user exists in Supabase
+        // should we be using existingUserError
+        // Inside OAuth2Strategy callback
         const { data: existingUser, error: existingUserError } = await supabase
           .from('users')
           .select('*')
@@ -110,19 +119,18 @@ passport.use(
 
         if (existingUser) {
           console.log('✅ Existing user found:', existingUser);
-          return done(null, existingUser);
+          return done(null, existingUser); // ✅ Ensure user is passed to Passport
         }
 
         console.log('⚡ User does not exist, inserting...');
 
-        // 🔹 Step 3: Insert New User with Supabase Auth ID
+        // 3: Insert New User with Supabase Auth ID
         const { data: newUser, error: insertError } = await supabase
           .from('users')
           .insert([
             {
-              id: supabaseUser.id, // ✅ Use Supabase Auth ID
-              google_id: supabaseUser.user_metadata?.provider_id || profile.id, // ✅ Ensure google_id is set
-              email: supabaseUser.email,
+              id: supabaseUser.id,
+              google_id: supabaseUser.user_metadata?.provider_id || profile.id,
               name:
                 supabaseUser.user_metadata?.full_name ||
                 profile.displayName ||

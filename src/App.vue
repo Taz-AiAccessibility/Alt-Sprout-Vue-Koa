@@ -1,40 +1,58 @@
 <template>
-  <main id="app">
+  <header>
     <h1>Alt Sprout</h1>
+  </header>
+  <main id="app">
+    <article class="auth-container">
+      <nav v-if="!user.name" aria-label="Authentication">
+        <button @click="loginWithGoogle">Login with Google</button>
+      </nav>
 
-    <!-- 🔹 Google Login Button -->
-    <div class="auth-section">
-      <button v-if="!user" @click="loginWithGoogle">Login with Google</button>
-      <div v-else>
-        <p>Welcome, {{ user.name }}!</p>
-        <img :src="user.avatar_url" alt="User Avatar" class="avatar" />
-        <button @click="logout">Logout</button>
-      </div>
-    </div>
+      <section v-else class="user-info">
+        <header>
+          <h2>Welcome, {{ user.name }}!</h2>
+        </header>
+        <figure>
+          <img
+            :src="user?.avatar_url"
+            :alt="`Profile picture of ${user.name}`"
+            class="avatar"
+          />
+        </figure>
+        <nav>
+          <button @click="logout">Logout</button>
+        </nav>
+      </section>
+    </article>
 
-    <form @submit.prevent="handleSubmit">
-      <fieldset>
-        <legend>Input Image Information</legend>
-        <ImageInput v-model="formData.imageUrl" />
-        <SubjectInput v-model="formData.subjects" />
-        <TargetAudienceInput v-model="formData.targetAudience" />
-        <button type="submit">Submit</button>
-      </fieldset>
-    </form>
+    <section v-if="user.name">
+      <!-- Form for Image Input, Subject and Audience Context -->
+      <form @submit.prevent="handleSubmit">
+        <fieldset>
+          <legend>Input Image Information</legend>
+          <ImageInput v-model="formData.imageUrl" />
+          <SubjectInput v-model="formData.subjects" />
+          <TargetAudienceInput v-model="formData.targetAudience" />
+          <button type="submit">Submit</button>
+        </fieldset>
+      </form>
 
-    <p v-if="isLoading">Generating alt text...</p>
-    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-
-    <ResponseDisplay
-      v-if="altTextResult"
-      responseType="Alt Text Result"
-      :responseText="altTextResult"
-    />
+      <p v-if="isLoading">Generating alt text...</p>
+      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+      <p v-if="altTextResult && user.id">Debug: Rendering ResponseDisplay</p>
+      <ResponseDisplay
+        v-if="altTextResult && user.id"
+        responseType="Alt Text Result"
+        :responseText="altTextResult"
+        :user-id="user.id || ''"
+      />
+    </section>
   </main>
+  <footer></footer>
 </template>
 
 <script lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, watch, onMounted } from 'vue';
 import ImageInput from './components/ImageInput.vue';
 import SubjectInput from './components/SubjectInput.vue';
 import TargetAudienceInput from './components/TargetAudienceInput.vue';
@@ -49,7 +67,8 @@ export default {
     ResponseDisplay,
   },
   setup() {
-    const user = ref<any>(null);
+    // might need to expand on user properties
+    const user = ref<{ name?: string; avatar_url?: string; id?: string }>({});
     const isLoading = ref<boolean>(false);
     const errorMessage = ref<string | null>(null);
     const altTextResult = ref<any>(null);
@@ -58,43 +77,69 @@ export default {
       imageUrl: '',
       subjects: '',
       targetAudience: '',
+      description_origin: '',
     });
 
-    // 🔹 Fetch user session when the app loads
+    watch(
+      () => formData.imageUrl,
+      (newUrl, oldUrl) => {
+        if (newUrl !== oldUrl) {
+          console.log('🆕 Image changed, resetting altTextResult');
+          altTextResult.value = null;
+        }
+      }
+    );
+
     const fetchUserSession = async () => {
       try {
         const response = await fetch('http://localhost:3000/user-session', {
-          credentials: 'include', // Ensure cookies are sent with the request
+          credentials: 'include',
         });
+
         const data = await response.json();
-        if (data.user) user.value = data.user;
+
+        if (data.user && data.token) {
+          user.value = data.user;
+          localStorage.setItem('supabase_token', data.token); // ✅ Store token properly
+          console.log('✅ Token stored:', data.token);
+        } else {
+          console.warn('⚠️ No user session found.');
+          localStorage.removeItem('supabase_token'); // Ensure it's cleared if invalid
+        }
+
+        console.log('✅ User session fetched:', user.value);
       } catch (error) {
-        console.error('Error fetching user session:', error);
+        console.error('❌ Error fetching user session:', error);
       }
     };
 
     onMounted(fetchUserSession);
 
-    // 🔹 Redirect to Google OAuth Login
+    // Redirect to Google OAuth Login
 
     const loginWithGoogle = () => {
       window.location.href = 'http://localhost:3000/auth/google';
     };
 
-    // 🔹 Logout Function
+    // Logout Function
     const logout = async () => {
       try {
         await fetch('http://localhost:3000/logout', {
           method: 'GET',
-          credentials: 'include', // Ensure session cookies are removed
+          credentials: 'include',
         });
-        user.value = null;
+        // Clears user state
+        user.value = {};
+        // Clear token
+        localStorage.removeItem('supabase_token');
+        // Redirect to home page
+        window.location.href = '/';
       } catch (error) {
-        console.error('Logout failed:', error);
+        console.error('❌ Logout failed:', error);
       }
     };
 
-    // 🔹 Form submission handler
+    // Form submission handler
     const handleSubmit = async () => {
       isLoading.value = true;
       errorMessage.value = null;

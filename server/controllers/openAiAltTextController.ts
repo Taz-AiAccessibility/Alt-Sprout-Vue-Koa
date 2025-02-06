@@ -43,8 +43,12 @@ export const queryOpenAI = async (ctx: Context, next: Next) => {
       ctx.body = { error: 'OpenAI did not return a valid response' };
       return;
     }
-
-    ctx.state.analysisResult = JSON.parse(completion);
+    const result = JSON.parse(completion);
+    result.description_origin = imageAnalysis;
+    result.subjects = imageContext;
+    result.targetAudience = textContext;
+    console.log('RESULT:', result);
+    ctx.state.analysisResult = result;
 
     await next();
   } catch (error: any) {
