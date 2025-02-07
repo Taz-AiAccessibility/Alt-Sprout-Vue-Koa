@@ -146,7 +146,7 @@ export default {
 
     const fetchUserSession = async () => {
       try {
-        const response = await fetch(`${DOMAIN_NAME}/user-session`, {
+        const response = await fetch(`${BACKEND_URL}/user-session`, {
           credentials: 'include', // Ensures cookies are sent with the request
         });
 
@@ -175,12 +175,12 @@ export default {
 
     // Redirect to Google OAuth Login
     const loginWithGoogle = () => {
-      window.location.href = `${DOMAIN_NAME}/auth/google`;
+      window.location.href = `${BACKEND_URL}/auth/google`;
     };
 
     const logout = async () => {
       try {
-        await fetch(`${DOMAIN_NAME}/logout`, {
+        await fetch(`${BACKEND_URL}/logout`, {
           method: 'GET',
           credentials: 'include', // Ensures cookies are included
         });
@@ -198,7 +198,7 @@ export default {
       errorMessage.value = null;
 
       try {
-        const response = await fetch(`${DOMAIN_NAME}/alt-text`, {
+        const response = await fetch(`${BACKEND_URL}/alt-text`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
