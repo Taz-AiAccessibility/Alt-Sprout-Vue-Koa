@@ -3,6 +3,7 @@ import Router from '@koa/router';
 import cors from '@koa/cors';
 import serve from 'koa-static';
 import path from 'path';
+import fs from 'fs';
 import koaBody from 'koa-body';
 import session from 'koa-session';
 import passport, { User } from './auth';
@@ -30,16 +31,19 @@ app.use(
 
 // Serve frontend build in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(serve(path.join(__dirname, 'dist')));
-}
+  app.use(serve(path.join(__dirname, '../dist')));
 
-// Fallback to index.html for Vue SPA
-if (process.env.NODE_ENV === 'production') {
+  // Fallback for Vue SPA routes
   router.get('(.*)', async (ctx) => {
-    ctx.type = 'html';
-    ctx.body = require('fs').createReadStream(
-      path.join(__dirname, 'dist', 'index.html')
-    );
+    const indexPath = path.join(__dirname, '../dist', 'index.html');
+
+    if (fs.existsSync(indexPath)) {
+      ctx.type = 'html';
+      ctx.body = fs.createReadStream(indexPath);
+    } else {
+      ctx.status = 404;
+      ctx.body = 'Frontend build not found!';
+    }
   });
 }
 
