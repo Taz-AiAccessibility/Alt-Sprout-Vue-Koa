@@ -113,15 +113,14 @@ export default {
   },
   setup() {
     // might need to expand on user properties
-    const backendPort = import.meta.env.PORT || '3000';
+    const DOMAIN_NAME =
+      import.meta.env.VITE_DOMAIN_NAME || 'http://localhost:3000';
     const user = ref<{ name?: string; avatar_url?: string; id?: string }>({});
     const isLoading = ref<boolean>(false);
     const errorMessage = ref<string | null>(null);
     const altTextResult = ref<any>(null);
     const showForm = ref<boolean>(true); // Toggle form visibility
     const formKey = ref(0); // :key updates on resetFrom to override KeepAlive to force a re-render
-
-    console.log('FRONTEND URL:', backendPort);
 
     const formData = reactive({
       imageUrl: '',
@@ -146,12 +145,9 @@ export default {
 
     const fetchUserSession = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:${backendPort}/user-session`,
-          {
-            credentials: 'include', // Ensures cookies are sent with the request
-          }
-        );
+        const response = await fetch(`${DOMAIN_NAME}/user-session`, {
+          credentials: 'include', // Ensures cookies are sent with the request
+        });
 
         console.log('RESPONSE:', response);
 
@@ -178,12 +174,12 @@ export default {
 
     // Redirect to Google OAuth Login
     const loginWithGoogle = () => {
-      window.location.href = `http://localhost:${backendPort}/auth/google`;
+      window.location.href = `${DOMAIN_NAME}/auth/google`;
     };
 
     const logout = async () => {
       try {
-        await fetch(`http://localhost:${backendPort}/logout`, {
+        await fetch(`${DOMAIN_NAME}/logout`, {
           method: 'GET',
           credentials: 'include', // Ensures cookies are included
         });
@@ -201,19 +197,16 @@ export default {
       errorMessage.value = null;
 
       try {
-        const response = await fetch(
-          `http://localhost:${backendPort}/alt-text`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-              userUrl: formData.imageUrl,
-              imageContext: formData.subjects,
-              textContext: formData.targetAudience,
-            }),
-          }
-        );
+        const response = await fetch(`${DOMAIN_NAME}/alt-text`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            userUrl: formData.imageUrl,
+            imageContext: formData.subjects,
+            textContext: formData.targetAudience,
+          }),
+        });
 
         if (!response.ok) throw new Error(`API error: ${response.statusText}`);
 

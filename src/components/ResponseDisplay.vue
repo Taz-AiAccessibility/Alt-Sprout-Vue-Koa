@@ -83,7 +83,8 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const backendPort = import.meta.env.VITE_BACKEND_PORT || '3000';
+    const DOMAIN_NAME =
+      import.meta.env.VITE_DOMAIN_NAME || 'http://localhost:3000';
     const copied = ref<{ simple: boolean; complex: boolean }>({
       simple: false,
       complex: false,
@@ -138,17 +139,14 @@ export default defineComponent({
       };
 
       try {
-        const response = await fetch(
-          `http://localhost:${backendPort}/like-description`,
-          {
-            method: 'POST',
-            credentials: 'include', // 🔥 Ensures cookies are sent
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-          }
-        );
+        const response = await fetch(`${DOMAIN_NAME}/like-description`, {
+          method: 'POST',
+          credentials: 'include', // 🔥 Ensures cookies are sent
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
 
         if (!response.ok) {
           const errorData = await response.json();
