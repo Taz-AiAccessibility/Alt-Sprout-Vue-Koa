@@ -12,6 +12,8 @@ import { queryOpenAI } from './controllers/openAiAltTextController';
 
 import likedDescriptionRoutes from './routes/likedDescriptionRoutes';
 
+const FRONTEND_URL = process.env.VITE_FRONTEND_URL || 'http://localhost:5173';
+
 const app = new Koa();
 const router = new Router();
 
@@ -63,12 +65,12 @@ router.get('/auth/google/callback', async (ctx: Context, next) => {
     'google',
     async (err: any, user: User, info: any) => {
       if (err || !user) {
-        ctx.redirect('http://localhost:5173');
+        ctx.redirect(FRONTEND_URL);
         return;
       }
       await ctx.login(user);
       ctx.redirect(
-        `http://localhost:5173?user=${encodeURIComponent(JSON.stringify(user))}`
+        `${FRONTEND_URL}?user=${encodeURIComponent(JSON.stringify(user))}`
       );
     }
   )(ctx, next);
@@ -116,41 +118,6 @@ router.get('/user-session', async (ctx) => {
   }
 });
 
-router.get('/user-session', async (ctx) => {
-  console.log('🔍 Checking session for user...');
-
-  if (ctx.isAuthenticated() && ctx.state.user) {
-    console.log('✅ User in session:', ctx.state.user);
-
-    // Ensure we return the access token
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
-
-    if (error || !session) {
-      ctx.body = { user: null, token: null };
-      return;
-    }
-
-    console.log('✅  SESSION TOKEN:', session?.access_token);
-
-    const user = {
-      id: ctx.state.user.id,
-      name: ctx.state.user.name,
-      avatar_url: ctx.state.user.avatar_url,
-    };
-
-    ctx.body = {
-      user: user,
-      token: session.access_token,
-    };
-  } else {
-    console.log('❌ No user session found.');
-    ctx.body = { user: null, token: null };
-  }
-});
-
 router.get('/logout', async (ctx) => {
   if (ctx.isAuthenticated()) {
     ctx.logout();
@@ -184,6 +151,7 @@ app
   .use(likedDescriptionRoutes.allowedMethods());
 
 // Start server
+// might need to change env variable to just PORT for build
 const PORT = process.env.VITE_BACKEND_PORT || 3000; // Render dynamically assigns a port
 app.listen(PORT, () => {
   console.log(`🚀 Koa server running on http://localhost:${PORT}`);
