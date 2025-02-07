@@ -1,6 +1,8 @@
 import Koa, { Context, Next } from 'koa';
 import Router from '@koa/router';
 import cors from '@koa/cors';
+import serve from 'koa-static';
+import path from 'path';
 import koaBody from 'koa-body';
 import session from 'koa-session';
 import passport, { User } from './auth';
@@ -25,6 +27,21 @@ app.use(
     credentials: true, // Allows cookies to be sent
   })
 );
+
+// Serve frontend build in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(serve(path.join(__dirname, 'dist')));
+}
+
+// Fallback to index.html for Vue SPA
+if (process.env.NODE_ENV === 'production') {
+  router.get('(.*)', async (ctx) => {
+    ctx.type = 'html';
+    ctx.body = require('fs').createReadStream(
+      path.join(__dirname, 'dist', 'index.html')
+    );
+  });
+}
 
 app.use(koaBody());
 
