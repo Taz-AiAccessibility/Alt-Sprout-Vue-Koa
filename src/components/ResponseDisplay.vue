@@ -122,6 +122,54 @@ export default defineComponent({
       }
     };
 
+    // const toggleLike = async (type: 'simple' | 'complex') => {
+    //   if (!props.userId) {
+    //     console.error('❌ User not logged in. Missing userId.');
+    //     return;
+    //   }
+
+    //   const payload = {
+    //     descriptionType: type,
+    //     descriptionText: props.responseText[type],
+    //     descriptionOrigin: props.responseText.description_origin,
+    //     subjects: props.responseText.subjects,
+    //     targetAudience: props.responseText.targetAudience,
+    //   };
+
+    //   const token = localStorage.getItem('supabase_token'); // ✅ Retrieve stored token
+    //   if (!token) {
+    //     console.error('❌ No authentication token found!');
+    //     return;
+    //   }
+
+    //   console.log(props.responseText.description_origin);
+
+    //   try {
+    //     const response = await fetch('http://localhost:3000/like-description', {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //         Authorization: `Bearer ${token}`, // ✅ Include token
+    //       },
+    //       credentials: 'include',
+    //       body: JSON.stringify(payload),
+    //     });
+
+    //     const data = await response.json();
+
+    //     if (!response.ok) {
+    //       throw new Error(data.error || 'Failed to save like');
+    //     }
+
+    //     console.log('✅ Like saved:', data);
+
+    //     // ✅ Mark only this specific description as liked
+    //     liked.value[type] = true;
+    //   } catch (error) {
+    //     console.error('❌ Error saving like:', error);
+    //   }
+    // };
+
     const toggleLike = async (type: 'simple' | 'complex') => {
       if (!props.userId) {
         console.error('❌ User not logged in. Missing userId.');
@@ -136,36 +184,24 @@ export default defineComponent({
         targetAudience: props.responseText.targetAudience,
       };
 
-      const token = localStorage.getItem('supabase_token'); // ✅ Retrieve stored token
-      if (!token) {
-        console.error('❌ No authentication token found!');
-        return;
-      }
-
-      console.log('📤 Sending like request:', payload);
-      console.log('✅ Token stored:', token);
-      console.log(props.responseText.description_origin);
-
       try {
         const response = await fetch('http://localhost:3000/like-description', {
           method: 'POST',
+          credentials: 'include', // 🔥 Ensures cookies are sent
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`, // ✅ Include token
           },
-          credentials: 'include',
           body: JSON.stringify(payload),
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to save like');
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to save like');
         }
 
+        const data = await response.json();
         console.log('✅ Like saved:', data);
 
-        // ✅ Mark only this specific description as liked
         liked.value[type] = true;
       } catch (error) {
         console.error('❌ Error saving like:', error);
