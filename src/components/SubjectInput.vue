@@ -53,5 +53,6 @@ label {
 input {
   padding: 5px;
   width: 300px;
+  margin: 10px;
 }
 </style>

@@ -103,6 +103,43 @@ router.get('/user-session', async (ctx) => {
   }
 });
 
+// retrieve image to avoid CORB image blocking
+router.get('/proxy-image', async (ctx) => {
+  const url = ctx.query.url;
+  if (!url) {
+    ctx.status = 400;
+    ctx.body = { error: 'Missing URL' };
+    return;
+  }
+
+  if (typeof url !== 'string') {
+    ctx.status = 400;
+    ctx.body = { error: 'URL must be a string' };
+    return;
+  }
+
+  try {
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }, // Bypass some security filters
+    });
+
+    if (!response.ok) {
+      ctx.status = response.status;
+      ctx.body = { error: 'Failed to fetch image' };
+      return;
+    }
+
+    ctx.set(
+      'Content-Type',
+      response.headers.get('Content-Type') || 'image/jpeg'
+    );
+    ctx.body = response.body;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: 'Image fetch failed' };
+  }
+});
+
 // Logout Route
 router.get('/logout', async (ctx) => {
   if (ctx.isAuthenticated()) {

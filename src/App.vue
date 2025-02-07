@@ -1,54 +1,85 @@
 <template>
-  <header>
-    <h1>Alt Sprout</h1>
-  </header>
-  <main id="app">
-    <article class="auth-container">
+  <header id="main-header">
+    <h1>Alt Sprout Dance</h1>
+    <article id="auth-container">
       <nav v-if="!user.name" aria-label="Authentication">
         <button @click="loginWithGoogle">Login with Google</button>
       </nav>
-
       <section v-else class="user-info">
-        <header>
-          <h2>Welcome, {{ user.name }}!</h2>
-        </header>
-        <figure>
-          <img
-            :src="user?.avatar_url"
-            :alt="`Profile picture of ${user.name}`"
-            class="avatar"
-          />
-        </figure>
+        <img v-if="user.avatar_url" :src="user.avatar_url" class="avatar" />
+        <!-- :alt="`Profile picture of ${user.name}`" -->
+
         <nav>
           <button @click="logout">Logout</button>
         </nav>
       </section>
     </article>
-
+  </header>
+  <main id="main-container">
     <section v-if="user.name">
-      <!-- Form for Image Input, Subject and Audience Context -->
-      <form @submit.prevent="handleSubmit">
-        <fieldset>
-          <legend>Input Image Information</legend>
-          <ImageInput v-model="formData.imageUrl" />
-          <SubjectInput v-model="formData.subjects" />
-          <TargetAudienceInput v-model="formData.targetAudience" />
-          <button type="submit">Submit</button>
-        </fieldset>
-      </form>
+      <transition name="fade">
+        <!-- :key updates on resetFrom to override KeepAlive to force a re-render -->
+        <KeepAlive>
+          <form v-show="showForm" :key="formKey" @submit.prevent="handleSubmit">
+            <fieldset>
+              <legend>Input Image Information</legend>
+              <ImageInput v-model="formData.imageUrl" />
+              <SubjectInput v-model="formData.subjects" />
+              <TargetAudienceInput v-model="formData.targetAudience" />
+              <button type="submit">Submit</button>
+            </fieldset>
+          </form>
+        </KeepAlive>
+      </transition>
 
-      <p v-if="isLoading">Generating alt text...</p>
-      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-      <p v-if="altTextResult && user.id">Debug: Rendering ResponseDisplay</p>
-      <ResponseDisplay
-        v-if="altTextResult && user.id"
-        responseType="Alt Text Result"
-        :responseText="altTextResult"
-        :user-id="user.id || ''"
-      />
+      <transition name="fade">
+        <p v-if="!altTextResult && isLoading">Generating alt text...</p>
+      </transition>
+
+      <transition name="fade">
+        <p v-if="!altTextResult && errorMessage" class="error">
+          {{ errorMessage }}
+        </p>
+      </transition>
+
+      <transition name="fade">
+        <ResponseDisplay
+          v-if="altTextResult && user.id && !showForm"
+          responseType="Alt Text Result"
+          :responseText="altTextResult"
+          :user-id="user.id || ''"
+        />
+      </transition>
+
+      <!-- Toggle Button -->
+      <div class="button-container">
+        <button v-if="!showForm && altTextResult" @click="toggleForm">
+          Edit Input
+        </button>
+        <button v-if="showForm && altTextResult" @click="toggleForm">
+          View Results
+        </button>
+        <button @click="resetForm">Reset</button>
+      </div>
     </section>
   </main>
-  <footer></footer>
+  <footer>
+    <a
+      id="gitHubAnchor"
+      href="https://github.com/Taz-AiAccessibility/Alt-Sprout-Vue-Koa"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Checkout the A11y Sprout on GitHub"
+    >
+      <span className="icon-text">Checkout Alt Sprout on GitHub</span>
+      <img
+        aria-hidden="true"
+        id="gitHubIcon"
+        :src="gitHubIcon"
+        alt="GitHub Icon"
+      />
+    </a>
+  </footer>
 </template>
 
 <script lang="ts">
@@ -57,6 +88,7 @@ import ImageInput from './components/ImageInput.vue';
 import SubjectInput from './components/SubjectInput.vue';
 import TargetAudienceInput from './components/TargetAudienceInput.vue';
 import ResponseDisplay from './components/ResponseDisplay.vue';
+import gitHubIcon from './assets/github-icon.svg';
 
 export default {
   name: 'App',
@@ -72,23 +104,29 @@ export default {
     const isLoading = ref<boolean>(false);
     const errorMessage = ref<string | null>(null);
     const altTextResult = ref<any>(null);
+    const showForm = ref<boolean>(true); // Toggle form visibility
+    const formKey = ref(0); // :key updates on resetFrom to override KeepAlive to force a re-render
 
     const formData = reactive({
       imageUrl: '',
       subjects: '',
       targetAudience: '',
       description_origin: '',
+      previewImage: '',
     });
 
-    watch(
-      () => formData.imageUrl,
-      (newUrl, oldUrl) => {
-        if (newUrl !== oldUrl) {
-          console.log('🆕 Image changed, resetting altTextResult');
-          altTextResult.value = null;
-        }
-      }
-    );
+    // watch(
+    //   () => formData.imageUrl,
+    //   (newUrl, oldUrl) => {
+    //     if (newUrl !== oldUrl) {
+    //       altTextResult.value = null;
+    //     }
+    //   }
+    // );
+
+    watch(user, (newUser) => {
+      console.log('👤 User data updated:', newUser);
+    });
 
     const fetchUserSession = async () => {
       try {
@@ -99,15 +137,18 @@ export default {
         const data = await response.json();
 
         if (data.user && data.token) {
-          user.value = data.user;
-          localStorage.setItem('supabase_token', data.token); // ✅ Store token properly
-          console.log('✅ Token stored:', data.token);
+          user.value = {
+            name: data.user.name,
+            avatar_url: data.user.avatar_url,
+            id: data.user.id,
+          };
+
+          localStorage.setItem('supabase_token', data.token);
+          console.log('✅ User session fetched:', user.value);
         } else {
           console.warn('⚠️ No user session found.');
-          localStorage.removeItem('supabase_token'); // Ensure it's cleared if invalid
+          localStorage.removeItem('supabase_token');
         }
-
-        console.log('✅ User session fetched:', user.value);
       } catch (error) {
         console.error('❌ Error fetching user session:', error);
       }
@@ -116,7 +157,6 @@ export default {
     onMounted(fetchUserSession);
 
     // Redirect to Google OAuth Login
-
     const loginWithGoogle = () => {
       window.location.href = 'http://localhost:3000/auth/google';
     };
@@ -160,12 +200,29 @@ export default {
 
         const data = await response.json();
         altTextResult.value = data;
+        showForm.value = false;
       } catch (error: any) {
         console.error('Error submitting form:', error);
         errorMessage.value = error.message || 'Something went wrong';
       } finally {
         isLoading.value = false;
       }
+    };
+
+    // Toggle form visibility
+    const toggleForm = () => {
+      showForm.value = !showForm.value;
+    };
+
+    // Reset everything
+    const resetForm = () => {
+      formData.imageUrl = '';
+      formData.subjects = '';
+      formData.targetAudience = '';
+      formData.previewImage = '';
+      altTextResult.value = null;
+      showForm.value = true;
+      formKey.value++;
     };
 
     return {
@@ -177,25 +234,106 @@ export default {
       altTextResult,
       loginWithGoogle,
       logout,
+      toggleForm,
+      resetForm,
+      showForm,
+      formKey,
+      gitHubIcon,
     };
   },
 };
 </script>
 
 <style>
-#app {
-  text-align: center;
-  padding: 20px;
+/* header */
+header#main-header {
+  display: flex;
+  justify-content: space-between;
 }
 
-.auth-section {
-  margin-bottom: 20px;
+h1 {
+  font-size: small;
+}
+
+header#main-header {
+  padding: 0 10px;
+  background-color: gray;
+}
+
+/* login & user */
+header .auth-container {
+  width: 100%;
+  display: flex;
+}
+
+section.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: right;
 }
 
 .avatar {
-  width: 50px;
-  height: 50px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
+}
+
+/* main */
+main {
+  flex-grow: 1;
+  max-width: 1280px;
+  margin: 10px auto;
+}
+
+/* transition elements -> input, output, loading, errors */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.button-container {
   margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+button {
+  padding: 8px 16px;
+  border: none;
+  background-color: #3498db;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background-color: #2980b9;
+}
+
+/* footer */
+footer {
+  height: 60px;
+  background-color: #1b2730;
+  text-align: center;
+  line-height: 60px; /* Center text vertically */
+}
+
+#gitHubAnchor {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+#gitHubIcon {
+  height: 30px;
+  width: 30px;
 }
 </style>

@@ -59,7 +59,6 @@
 
 <script lang="ts">
 import { defineComponent, ref, type PropType } from 'vue';
-import TargetAudienceInput from './TargetAudienceInput.vue';
 
 export default defineComponent({
   name: 'ResponseDisplay',
@@ -172,100 +171,6 @@ export default defineComponent({
         console.error('❌ Error saving like:', error);
       }
     };
-
-    // const toggleLike = async (type: 'simple' | 'complex') => {
-    //   liked.value[type] = true;
-    //   if (!props.userId) {
-    //     console.error('❌ User not logged in. Missing userId.');
-    //     return;
-    //   }
-
-    //   // ✅ Prevent multiple clicks
-    //   if (liked.value[type]) {
-    //     console.warn(`⚠️ Already liked ${type}, cannot like again.`);
-    //     return;
-    //   }
-
-    //   const payload = {
-    //     descriptionType: type,
-    //     descriptionText: props.responseText[type],
-    //   };
-
-    //   const token = localStorage.getItem('supabase_token'); // ✅ Retrieve stored token
-    //   if (!token) {
-    //     console.error('❌ No authentication token found!');
-    //     return;
-    //   }
-
-    //   console.log('📤 Sending like request:', payload);
-
-    //   try {
-    //     const response = await fetch('http://localhost:3000/like-description', {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         Authorization: `Bearer ${token}`, // ✅ Include token
-    //       },
-    //       credentials: 'include',
-    //       body: JSON.stringify(payload),
-    //     });
-
-    //     const data = await response.json();
-
-    //     if (!response.ok) {
-    //       throw new Error(data.error || 'Failed to save like');
-    //     }
-
-    //     console.log('✅ Like saved:', data);
-
-    //     // ✅ Update heart state to prevent further clicks
-    //   } catch (error) {
-    //     console.error('❌ Error saving like:', error);
-    //   }
-    // };
-
-    //
-    // const toggleLike = async (type: 'simple' | 'complex') => {
-    //   if (!props.userId) {
-    //     console.error('❌ User not logged in. Missing userId.');
-    //     return;
-    //   }
-
-    //   const payload = {
-    //     descriptionType: type,
-    //     descriptionText: props.responseText[type],
-    //   };
-
-    //   const token = localStorage.getItem('supabase_token'); // ✅ Retrieve stored token
-    //   if (!token) {
-    //     console.error('❌ No authentication token found!');
-    //     return;
-    //   }
-
-    //   console.log('📤 Sending like request:', payload);
-
-    //   try {
-    //     const response = await fetch('http://localhost:3000/like-description', {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         Authorization: `Bearer ${token}`, // ✅ Include token
-    //       },
-    //       credentials: 'include',
-    //       body: JSON.stringify(payload),
-    //     });
-
-    //     const data = await response.json();
-
-    //     if (!response.ok) {
-    //       throw new Error(data.error || 'Failed to save like');
-    //     }
-
-    //     console.log('✅ Like saved:', data);
-    //   } catch (error) {
-    //     console.error('❌ Error saving like:', error);
-    //   }
-    // };
 
     return {
       copyToClipboard,
