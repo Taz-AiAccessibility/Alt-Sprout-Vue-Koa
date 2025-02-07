@@ -113,7 +113,7 @@ export default {
   },
   setup() {
     // might need to expand on user properties
-    const backendPort = import.meta.env.VITE_BACKEND_PORT || '3000';
+    const backendPort = import.meta.env.PORT || '3000';
     const user = ref<{ name?: string; avatar_url?: string; id?: string }>({});
     const isLoading = ref<boolean>(false);
     const errorMessage = ref<string | null>(null);
