@@ -74,6 +74,48 @@ router.get('/user-session', async (ctx) => {
   if (ctx.isAuthenticated() && ctx.state.user) {
     console.log('✅ User in session:', ctx.state.user);
 
+    // Fetch Supabase session token
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error || !session) {
+      ctx.cookies.set('supabase_token', '', { maxAge: 0 }); // Clear token
+      ctx.body = { user: null };
+      return;
+    }
+
+    console.log('✅  SESSION TOKEN:', session.access_token);
+
+    const user = {
+      id: ctx.state.user.id,
+      name: ctx.state.user.name,
+      avatar_url: ctx.state.user.avatar_url,
+    };
+
+    // 🔒 Securely store the token in HTTP-Only cookie
+    ctx.cookies.set('supabase_token', session.access_token, {
+      httpOnly: true, // Prevents JavaScript access
+      secure: process.env.NODE_ENV === 'production', // Ensures HTTPS in production
+      sameSite: 'lax', // Protects against CSRF
+      maxAge: 60 * 60 * 1000, // 1 hour expiration
+    });
+
+    ctx.body = { user }; // Return only user info (No token)
+  } else {
+    console.log('❌ No user session found.');
+    ctx.cookies.set('supabase_token', '', { maxAge: 0 }); // Clear token
+    ctx.body = { user: null };
+  }
+});
+
+router.get('/user-session', async (ctx) => {
+  console.log('🔍 Checking session for user...');
+
+  if (ctx.isAuthenticated() && ctx.state.user) {
+    console.log('✅ User in session:', ctx.state.user);
+
     // Ensure we return the access token
     const {
       data: { session },
@@ -103,48 +145,11 @@ router.get('/user-session', async (ctx) => {
   }
 });
 
-// retrieve image to avoid CORB image blocking
-router.get('/proxy-image', async (ctx) => {
-  const url = ctx.query.url;
-  if (!url) {
-    ctx.status = 400;
-    ctx.body = { error: 'Missing URL' };
-    return;
-  }
-
-  if (typeof url !== 'string') {
-    ctx.status = 400;
-    ctx.body = { error: 'URL must be a string' };
-    return;
-  }
-
-  try {
-    const response = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }, // Bypass some security filters
-    });
-
-    if (!response.ok) {
-      ctx.status = response.status;
-      ctx.body = { error: 'Failed to fetch image' };
-      return;
-    }
-
-    ctx.set(
-      'Content-Type',
-      response.headers.get('Content-Type') || 'image/jpeg'
-    );
-    ctx.body = response.body;
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = { error: 'Image fetch failed' };
-  }
-});
-
-// Logout Route
 router.get('/logout', async (ctx) => {
   if (ctx.isAuthenticated()) {
     ctx.logout();
-    ctx.session = {}; // Properly clears session without breaking it
+    ctx.session = {}; // Clears session
+    ctx.cookies.set('supabase_token', '', { maxAge: 0 }); // 🔒 Clears the HTTP-only cookie
     ctx.body = { message: 'Logged out successfully' };
     console.log('✅ User logged out successfully');
   } else {

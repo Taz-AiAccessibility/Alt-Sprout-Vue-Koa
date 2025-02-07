@@ -131,23 +131,22 @@ export default {
     const fetchUserSession = async () => {
       try {
         const response = await fetch('http://localhost:3000/user-session', {
-          credentials: 'include',
+          credentials: 'include', // Ensures cookies are sent with the request
         });
 
         const data = await response.json();
 
-        if (data.user && data.token) {
+        if (data.user) {
           user.value = {
             name: data.user.name,
             avatar_url: data.user.avatar_url,
             id: data.user.id,
           };
 
-          localStorage.setItem('supabase_token', data.token);
           console.log('✅ User session fetched:', user.value);
         } else {
           console.warn('⚠️ No user session found.');
-          localStorage.removeItem('supabase_token');
+          user.value = {};
         }
       } catch (error) {
         console.error('❌ Error fetching user session:', error);
@@ -161,19 +160,15 @@ export default {
       window.location.href = 'http://localhost:3000/auth/google';
     };
 
-    // Logout Function
     const logout = async () => {
       try {
         await fetch('http://localhost:3000/logout', {
           method: 'GET',
-          credentials: 'include',
+          credentials: 'include', // Ensures cookies are included
         });
-        // Clears user state
-        user.value = {};
-        // Clear token
-        localStorage.removeItem('supabase_token');
-        // Redirect to home page
-        window.location.href = '/';
+
+        user.value = {}; // Clears user state
+        window.location.href = '/'; // Redirect to home page
       } catch (error) {
         console.error('❌ Logout failed:', error);
       }
