@@ -1,0 +1,1 @@
+{"root":["./server/auth.ts","./server/index.ts","./server/supabase.ts","./server/controllers/imageprocessingcontroller.ts","./server/controllers/likeddescriptioncontroller.ts","./server/controllers/openaialttextcontroller.ts","./server/controllers/userquerycontroller.ts","./server/routes/likeddescriptionroutes.ts","./server/types/passport.d.ts"],"version":"5.6.3"}

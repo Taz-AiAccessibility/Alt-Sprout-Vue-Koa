@@ -10,7 +10,7 @@ export const openAiImageProcessing = async (ctx: Context, next: Next) => {
   console.log('imageProcessing middleware');
 
   const { userUrl, imageContext, textContext } = ctx.state;
-
+  // Original prompt - 'What’s in this image?'
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -19,7 +19,7 @@ export const openAiImageProcessing = async (ctx: Context, next: Next) => {
         {
           role: 'user',
           content: [
-            { type: 'text', text: 'What’s in this image?' },
+            { type: 'text', text: 'Describe this image of ballet dancers' },
             {
               type: 'image_url',
               image_url: { url: userUrl, detail: 'low' },
@@ -29,7 +29,6 @@ export const openAiImageProcessing = async (ctx: Context, next: Next) => {
       ],
     });
 
-    console.log('OpenAI Response:', response.choices[0]);
     ctx.state.imageAnalysis = response.choices[0].message.content;
     ctx.state.imageContext = imageContext;
     ctx.state.textContext = textContext;

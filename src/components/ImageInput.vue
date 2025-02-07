@@ -1,83 +1,41 @@
-<!-- <template>
-  <Fragment>
-    <label for="imageUrl">Image URL:</label>
-    <input
-      id="imageUrl"
-      type="text"
-      v-model="localImageUrl"
-      @input="updateImageUrl"
-      placeholder="Enter image URL"
-    />
-  </Fragment>
-</template>
-
-<script lang="ts">
-import { defineComponent, Fragment, ref, watch } from 'vue';
-
-export default defineComponent({
-  name: 'ImageInput',
-  props: {
-    modelValue: {
-      type: String,
-      required: true,
-    },
-  },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    const localImageUrl = ref(props.modelValue);
-
-    // Watch for input changes and emit updates
-    watch(localImageUrl, (newValue) => {
-      emit('update:modelValue', newValue);
-    });
-
-    const updateImageUrl = () => {
-      emit('update:modelValue', localImageUrl.value);
-    };
-
-    return {
-      localImageUrl,
-      updateImageUrl,
-    };
-  },
-});
-</script>
-
-<style>
-.image-input {
-  margin-bottom: 20px;
-}
-label {
-  margin-right: 10px;
-}
-input {
-  padding: 5px;
-  width: 300px;
-}
-</style> -->
-
 <template>
-  <div class="image-input">
-    <label>Enter Image URL or Upload a File:</label>
+  <section class="image-input">
+    <!-- File Upload Input (Shown when useUrl is false) -->
+    <div class="input" v-if="!useUrl">
+      <label for="image-upload">Upload a Image:</label>
+      <input
+        id="image-upload"
+        type="file"
+        accept="image/*"
+        @change="handleFileUpload"
+      />
+    </div>
 
-    <!-- Image URL Input -->
-    <input
-      type="text"
-      v-model="imageUrl"
-      placeholder="Paste an image URL"
-      @input="emitImage"
-    />
+    <!-- Image URL Input (Shown when useUrl is true) -->
+    <div class="input" v-if="useUrl">
+      <label for="image-url">Image URL:</label>
+      <input
+        id="image-url"
+        type="text"
+        v-model="imageUrl"
+        placeholder="Paste an image URL"
+        @input="emitImage"
+      />
+    </div>
 
-    <p>OR</p>
-
-    <!-- File Upload Input -->
-    <input type="file" accept="image/*" @change="handleFileUpload" />
+    <!-- Toggle Between File Upload & URL -->
+    <article id="toggle-input">
+      <label class="toggle-label">
+        <input type="checkbox" v-model="useUrl" />
+        Use Image URL instead of File Upload
+      </label>
+    </article>
 
     <!-- Preview Image -->
-    <div v-if="previewImage" class="preview-container">
+    <article v-if="previewImage" class="preview-container">
       <img :src="previewImage" alt="Uploaded Preview" class="preview-image" />
-    </div>
-  </div>
+    </article>
+  </section>
 </template>
 
 <script lang="ts">
@@ -95,6 +53,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const imageUrl = ref<string>(props.modelValue || '');
     const previewImage = ref<string | null>(null);
+    const useUrl = ref<boolean>(false); // Toggle between URL and file upload
 
     // Emit changes when URL input is used
     const emitImage = () => {
@@ -135,6 +94,7 @@ export default defineComponent({
     return {
       imageUrl,
       previewImage,
+      useUrl,
       emitImage,
       handleFileUpload,
     };
@@ -147,16 +107,39 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin: 0 20px 0 20px;
   align-items: center;
 }
 
 input[type='text'],
 input[type='file'] {
-  width: 100%;
+  width: 80%;
   padding: 8px;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+#toggle-input {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Adjust spacing between elements */
+  justify-content: flex-start;
+}
+
+.toggle-label {
+  font-size: 0.8rem; /* Make text slightly smaller */
+  line-height: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.toggle-label input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
 .preview-container {
@@ -164,7 +147,7 @@ input[type='file'] {
 }
 
 .preview-image {
-  max-width: 100%;
+  max-width: 80%;
   height: auto;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
