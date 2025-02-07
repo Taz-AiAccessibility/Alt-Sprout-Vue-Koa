@@ -113,8 +113,9 @@ export default {
   },
   setup() {
     // might need to expand on user properties
-    const DOMAIN_NAME =
-      import.meta.env.VITE_DOMAIN_NAME || 'http://localhost:3000';
+    const BACKEND_URL =
+      import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
     const user = ref<{ name?: string; avatar_url?: string; id?: string }>({});
     const isLoading = ref<boolean>(false);
     const errorMessage = ref<string | null>(null);

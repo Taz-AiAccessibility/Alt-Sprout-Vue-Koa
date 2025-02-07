@@ -83,8 +83,8 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const DOMAIN_NAME =
-      import.meta.env.VITE_DOMAIN_NAME || 'http://localhost:3000';
+    const BACKEND_URL =
+      import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
     const copied = ref<{ simple: boolean; complex: boolean }>({
       simple: false,
       complex: false,
@@ -139,7 +139,7 @@ export default defineComponent({
       };
 
       try {
-        const response = await fetch(`${DOMAIN_NAME}/like-description`, {
+        const response = await fetch(`${BACKEND_URL}/like-description`, {
           method: 'POST',
           credentials: 'include', // 🔥 Ensures cookies are sent
           headers: {
