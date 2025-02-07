@@ -1,47 +1,94 @@
 <template>
-  <main id="app">
-    <h1>Alt Sprout</h1>
-    <form @submit.prevent="handleSubmit">
-      <fieldset>
-        <legend>Input Image Information</legend>
-        <!-- Image Input (Supports URL and File Upload) -->
-        <ImageInput v-model="formData.imageUrl" />
-        <!-- Subject and Context Inputs -->
-        <SubjectInput v-model="formData.subjects" />
-        <TargetAudienceInput v-model="formData.targetAudience" />
-        <button type="submit">Submit</button>
-      </fieldset>
-    </form>
+  <header id="main-header">
+    <h1>Alt Sprout Dance</h1>
+    <article id="auth-container">
+      <nav v-if="!user.name" aria-label="Authentication">
+        <button @click="loginWithGoogle">Login with Google</button>
+      </nav>
+      <section v-else class="user-info">
+        <img v-if="user.avatar_url" :src="user.avatar_url" class="avatar" />
+        <!-- :alt="`Profile picture of ${user.name}`" -->
 
-    <!-- Show loading state -->
-    <p v-if="isLoading">Generating alt text...</p>
+        <nav>
+          <button @click="logout">Logout</button>
+        </nav>
+      </section>
+    </article>
+  </header>
+  <main id="main-container">
+    <section v-if="user.name">
+      <transition name="fade">
+        <!-- :key updates on resetFrom to override KeepAlive to force a re-render -->
+        <KeepAlive>
+          <form v-show="showForm" :key="formKey" @submit.prevent="handleSubmit">
+            <fieldset>
+              <legend>Input Image Information</legend>
+              <ImageInput v-model="formData.imageUrl" />
+              <SubjectInput v-model="formData.subjects" />
+              <TargetAudienceInput v-model="formData.targetAudience" />
+              <button type="submit">Submit</button>
+            </fieldset>
+          </form>
+        </KeepAlive>
+      </transition>
 
-    <!-- Display error messages -->
-    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+      <transition name="fade">
+        <p v-if="!altTextResult && isLoading">Generating alt text...</p>
+      </transition>
 
-    <!-- Display the submitted values -->
-    <!-- <DisplayImage
-      :imageUrl="imageUrl"
-      :subjects="subjects"
-      :targetAudience="targetAudience"
-    /> -->
+      <transition name="fade">
+        <p v-if="!altTextResult && errorMessage" class="error">
+          {{ errorMessage }}
+        </p>
+      </transition>
 
-    <!-- Display API Response -->
-    <ResponseDisplay
-      v-if="altTextResult"
-      responseType="Alt Text Result"
-      :responseText="altTextResult"
-    />
+      <transition name="fade">
+        <ResponseDisplay
+          v-if="altTextResult && user.id && !showForm"
+          responseType="Alt Text Result"
+          :responseText="altTextResult"
+          :user-id="user.id || ''"
+        />
+      </transition>
+
+      <!-- Toggle Button -->
+      <div class="button-container">
+        <button v-if="!showForm && altTextResult" @click="toggleForm">
+          Edit Input
+        </button>
+        <button v-if="showForm && altTextResult" @click="toggleForm">
+          View Results
+        </button>
+        <button @click="resetForm">Reset</button>
+      </div>
+    </section>
   </main>
+  <footer>
+    <a
+      id="gitHubAnchor"
+      href="https://github.com/Taz-AiAccessibility/Alt-Sprout-Vue-Koa"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Checkout the A11y Sprout on GitHub"
+    >
+      <span className="icon-text">Checkout Alt Sprout on GitHub</span>
+      <img
+        aria-hidden="true"
+        id="gitHubIcon"
+        :src="gitHubIcon"
+        alt="GitHub Icon"
+      />
+    </a>
+  </footer>
 </template>
 
 <script lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, watch, onMounted } from 'vue';
 import ImageInput from './components/ImageInput.vue';
 import SubjectInput from './components/SubjectInput.vue';
 import TargetAudienceInput from './components/TargetAudienceInput.vue';
-import DisplayImage from './components/DisplayImage.vue';
 import ResponseDisplay from './components/ResponseDisplay.vue';
+import gitHubIcon from './assets/github-icon.svg';
 
 export default {
   name: 'App',
@@ -49,24 +96,83 @@ export default {
     ImageInput,
     SubjectInput,
     TargetAudienceInput,
-    DisplayImage,
     ResponseDisplay,
   },
   setup() {
-    // Store the submitted state
-    const imageUrl = ref<string>('');
-    const subjects = ref<string>('');
-    const targetAudience = ref<string>('');
+    // might need to expand on user properties
+    const user = ref<{ name?: string; avatar_url?: string; id?: string }>({});
     const isLoading = ref<boolean>(false);
     const errorMessage = ref<string | null>(null);
-    const altTextResult = ref<any>(null); // Store API response
+    const altTextResult = ref<any>(null);
+    const showForm = ref<boolean>(true); // Toggle form visibility
+    const formKey = ref(0); // :key updates on resetFrom to override KeepAlive to force a re-render
 
-    // Temporary form state
     const formData = reactive({
       imageUrl: '',
       subjects: '',
       targetAudience: '',
+      description_origin: '',
+      previewImage: '',
     });
+
+    // watch(
+    //   () => formData.imageUrl,
+    //   (newUrl, oldUrl) => {
+    //     if (newUrl !== oldUrl) {
+    //       altTextResult.value = null;
+    //     }
+    //   }
+    // );
+
+    watch(user, (newUser) => {
+      console.log('👤 User data updated:', newUser);
+    });
+
+    const fetchUserSession = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/user-session', {
+          credentials: 'include', // Ensures cookies are sent with the request
+        });
+
+        const data = await response.json();
+
+        if (data.user) {
+          user.value = {
+            name: data.user.name,
+            avatar_url: data.user.avatar_url,
+            id: data.user.id,
+          };
+
+          console.log('✅ User session fetched:', user.value);
+        } else {
+          console.warn('⚠️ No user session found.');
+          user.value = {};
+        }
+      } catch (error) {
+        console.error('❌ Error fetching user session:', error);
+      }
+    };
+
+    onMounted(fetchUserSession);
+
+    // Redirect to Google OAuth Login
+    const loginWithGoogle = () => {
+      window.location.href = 'http://localhost:3000/auth/google';
+    };
+
+    const logout = async () => {
+      try {
+        await fetch('http://localhost:3000/logout', {
+          method: 'GET',
+          credentials: 'include', // Ensures cookies are included
+        });
+
+        user.value = {}; // Clears user state
+        window.location.href = '/'; // Redirect to home page
+      } catch (error) {
+        console.error('❌ Logout failed:', error);
+      }
+    };
 
     // Form submission handler
     const handleSubmit = async () => {
@@ -77,6 +183,7 @@ export default {
         const response = await fetch('http://localhost:3000/alt-text', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             userUrl: formData.imageUrl,
             imageContext: formData.subjects,
@@ -84,18 +191,11 @@ export default {
           }),
         });
 
-        if (!response.ok) {
-          throw new Error(`API error: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`API error: ${response.statusText}`);
 
         const data = await response.json();
-        console.log('Alt Text Response:', data.simple);
-        altTextResult.value = data; // Store response
-
-        // Update state with submitted values
-        imageUrl.value = formData.imageUrl;
-        subjects.value = formData.subjects;
-        targetAudience.value = formData.targetAudience;
+        altTextResult.value = data;
+        showForm.value = false;
       } catch (error: any) {
         console.error('Error submitting form:', error);
         errorMessage.value = error.message || 'Something went wrong';
@@ -104,121 +204,131 @@ export default {
       }
     };
 
+    // Toggle form visibility
+    const toggleForm = () => {
+      showForm.value = !showForm.value;
+    };
+
+    // Reset everything
+    const resetForm = () => {
+      formData.imageUrl = '';
+      formData.subjects = '';
+      formData.targetAudience = '';
+      formData.previewImage = '';
+      altTextResult.value = null;
+      showForm.value = true;
+      formKey.value++;
+    };
+
     return {
-      imageUrl,
-      subjects,
-      targetAudience,
+      user,
       formData,
       handleSubmit,
       isLoading,
       errorMessage,
       altTextResult,
+      loginWithGoogle,
+      logout,
+      toggleForm,
+      resetForm,
+      showForm,
+      formKey,
+      gitHubIcon,
     };
   },
 };
 </script>
 
 <style>
-#app {
-  text-align: center;
-  padding: 20px;
-}
-
-/* FORM STYLING */
-form {
+/* header */
+header#main-header {
   display: flex;
-  flex-direction: column; /* Stack elements vertically */
-  align-items: center; /* Center everything horizontally */
-  gap: 12px; /* Even spacing between fields */
-  width: 90%; /* Take up most of the screen on mobile */
-  max-width: 400px; /* Keep form compact on larger screens */
-  margin: 0 auto; /* Center form in the page */
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  background-color: #f9f9f9;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  justify-content: space-between;
 }
 
-/* FIELDSET */
-fieldset {
+h1 {
+  font-size: small;
+}
+
+header#main-header {
+  padding: 0 10px;
+  background-color: gray;
+}
+
+/* login & user */
+header .auth-container {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  width: 100%; /* Ensure fieldset is full width */
-  gap: 12px;
-  border: none;
-  padding: 10px;
 }
 
-/* LABELS */
-label {
-  font-size: 1rem;
-  font-weight: bold;
-  text-align: left;
-  width: 100%; /* Ensure labels align properly */
+section.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: right;
 }
 
-/* INPUTS, SELECT, TEXTAREA */
-input,
-select,
-textarea {
-  width: 100%; /* Full width input fields */
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-  box-sizing: border-box; /* Prevent width issues */
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
 }
 
-/* Improve focus outline */
-input:focus,
-select:focus,
-textarea:focus {
-  border-color: #007bff;
-  outline: none;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+/* main */
+main {
+  flex-grow: 1;
+  max-width: 1280px;
+  margin: 10px auto;
 }
 
-/* BUTTON STYLING */
+/* transition elements -> input, output, loading, errors */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.button-container {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
 button {
-  width: 100%; /* Full width for better tap interaction */
-  max-width: 200px; /* Prevent button from being too wide */
-  padding: 12px 16px;
-  background-color: #007bff;
-  color: white;
-  font-size: 1rem;
+  padding: 8px 16px;
   border: none;
-  border-radius: 6px;
+  background-color: #3498db;
+  color: white;
+  border-radius: 5px;
   cursor: pointer;
-  margin-top: 12px;
-  transition: background 0.3s ease-in-out;
+  transition: background 0.3s;
 }
 
-/* Button hover effect */
 button:hover {
-  background-color: #0056b3;
+  background-color: #2980b9;
 }
 
-/* Button disabled state */
-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
+/* footer */
+footer {
+  height: 60px;
+  background-color: #1b2730;
+  text-align: center;
+  line-height: 60px; /* Center text vertically */
 }
 
-/* 🌟 MEDIA QUERY: Responsive Adjustments */
-@media (min-width: 768px) {
-  form {
-    flex-direction: column; /* Keep stacked layout */
-    width: 50%; /* Slightly limit form width */
-  }
+#gitHubAnchor {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
 
-  fieldset {
-    flex: 1; /* Make inputs expand evenly */
-  }
-
-  button {
-    width: auto; /* Prevent button from stretching */
-  }
+#gitHubIcon {
+  height: 30px;
+  width: 30px;
 }
 </style>
