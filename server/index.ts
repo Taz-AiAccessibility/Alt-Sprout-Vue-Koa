@@ -19,7 +19,7 @@ app.keys = [process.env.SESSION_SECRET!];
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Update this for production
+    origin: process.env.VITE_FRONTEND_URL || 'http://localhost:5173', // Update this for production
     credentials: true, // Allows cookies to be sent
   })
 );
@@ -184,7 +184,7 @@ app
   .use(likedDescriptionRoutes.allowedMethods());
 
 // Start server
-const PORT = process.env.PORT || 3000; // Render dynamically assigns a port
+const PORT = process.env.VITE_BACKEND_PORT || 3000; // Render dynamically assigns a port
 app.listen(PORT, () => {
   console.log(`🚀 Koa server running on http://localhost:${PORT}`);
 });
