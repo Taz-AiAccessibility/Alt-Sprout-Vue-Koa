@@ -152,7 +152,7 @@ app
 
 // Start server
 // might need to change env variable to just PORT for build
-const PORT = process.env.VITE_BACKEND_PORT || 3000; // Render dynamically assigns a port
+const PORT = process.env.PORT || 3000; // Render dynamically assigns a port
 app.listen(PORT, () => {
   console.log(`🚀 Koa server running on http://localhost:${PORT}`);
 });
