@@ -1,3 +1,16 @@
+<!-- Define it Globally (config.ts)
+Instead of repeating this in multiple components, you can create a config.ts file:
+
+
+export const FRONTEND_URL =
+  import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
+Then, import it where needed:
+
+
+import { FRONTEND_URL } from '@/config';
+
+console.log(FRONTEND_URL); // Check if it's correctly loaded -->
+
 <template>
   <header id="main-header">
     <h1>Alt Sprout Dance</h1>
@@ -100,12 +113,15 @@ export default {
   },
   setup() {
     // might need to expand on user properties
+    const backendPort = import.meta.env.VITE_BACKEND_PORT || '3000';
     const user = ref<{ name?: string; avatar_url?: string; id?: string }>({});
     const isLoading = ref<boolean>(false);
     const errorMessage = ref<string | null>(null);
     const altTextResult = ref<any>(null);
     const showForm = ref<boolean>(true); // Toggle form visibility
     const formKey = ref(0); // :key updates on resetFrom to override KeepAlive to force a re-render
+
+    console.log('FRONTEND URL:', backendPort);
 
     const formData = reactive({
       imageUrl: '',
@@ -130,9 +146,14 @@ export default {
 
     const fetchUserSession = async () => {
       try {
-        const response = await fetch('http://localhost:3000/user-session', {
-          credentials: 'include', // Ensures cookies are sent with the request
-        });
+        const response = await fetch(
+          `http://localhost:${backendPort}/user-session`,
+          {
+            credentials: 'include', // Ensures cookies are sent with the request
+          }
+        );
+
+        console.log('RESPONSE:', response);
 
         const data = await response.json();
 
@@ -157,12 +178,12 @@ export default {
 
     // Redirect to Google OAuth Login
     const loginWithGoogle = () => {
-      window.location.href = 'http://localhost:3000/auth/google';
+      window.location.href = `http://localhost:${backendPort}/auth/google`;
     };
 
     const logout = async () => {
       try {
-        await fetch('http://localhost:3000/logout', {
+        await fetch(`http://localhost:${backendPort}/logout`, {
           method: 'GET',
           credentials: 'include', // Ensures cookies are included
         });
@@ -180,16 +201,19 @@ export default {
       errorMessage.value = null;
 
       try {
-        const response = await fetch('http://localhost:3000/alt-text', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            userUrl: formData.imageUrl,
-            imageContext: formData.subjects,
-            textContext: formData.targetAudience,
-          }),
-        });
+        const response = await fetch(
+          `http://localhost:${backendPort}/alt-text`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              userUrl: formData.imageUrl,
+              imageContext: formData.subjects,
+              textContext: formData.targetAudience,
+            }),
+          }
+        );
 
         if (!response.ok) throw new Error(`API error: ${response.statusText}`);
 
