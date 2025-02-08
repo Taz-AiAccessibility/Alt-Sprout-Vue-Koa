@@ -1,14 +1,12 @@
 <template>
-  <Fragment>
-    <label for="audience">Target Audience:</label>
-    <input
-      id="audience"
-      type="text"
-      v-model="localAudience"
-      @input="updateAudience"
-      placeholder="Enter target audience"
-    />
-  </Fragment>
+  <label for="audience">Target Audience:</label>
+  <input
+    id="audience"
+    type="text"
+    v-model="localAudience"
+    @input="updateAudience"
+    placeholder="Enter target audience"
+  />
 </template>
 
 <script lang="ts">

@@ -1,14 +1,12 @@
 <template>
-  <Fragment>
-    <label for="subjects">Subjects:</label>
-    <input
-      id="subjects"
-      type="text"
-      v-model="localSubjects"
-      @input="updateSubjects"
-      placeholder="Enter subjects, comma-separated"
-    />
-  </Fragment>
+  <label for="subjects">Subjects:</label>
+  <input
+    id="subjects"
+    type="text"
+    v-model="localSubjects"
+    @input="updateSubjects"
+    placeholder="Enter subjects, comma-separated"
+  />
 </template>
 
 <script lang="ts">
