@@ -23,13 +23,16 @@ export default defineConfig({
   server: {
     proxy: {
       '/auth': {
-        target: process.env.VITE_BACKEND_URL || 'http://localhost:10000',
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:3000',
         changeOrigin: true,
       },
       '/api': {
-        target: process.env.VITE_BACKEND_URL || 'http://localhost:10000',
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:3000',
         changeOrigin: true,
       },
     },
+  },
+  build: {
+    outDir: 'dist', // Ensure build output is in `dist/`
   },
 });

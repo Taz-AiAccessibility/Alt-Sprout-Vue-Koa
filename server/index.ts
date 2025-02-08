@@ -24,28 +24,10 @@ app.keys = [process.env.SESSION_SECRET!];
 
 app.use(
   cors({
-    origin: process.env.VITE_FRONTEND_URL || 'http://localhost:5173', // Update this for production
+    origin: FRONTEND_URL, // Update this for production
     credentials: true, // Allows cookies to be sent
   })
 );
-
-// Serve frontend build in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(serve(path.join(__dirname, '../dist')));
-
-  // Fallback for Vue SPA routes
-  router.get('(.*)', async (ctx) => {
-    const indexPath = path.join(__dirname, '../dist', 'index.html');
-
-    if (fs.existsSync(indexPath)) {
-      ctx.type = 'html';
-      ctx.body = fs.createReadStream(indexPath);
-    } else {
-      ctx.status = 404;
-      ctx.body = 'Frontend build not found!';
-    }
-  });
-}
 
 app.use(koaBody());
 
@@ -170,6 +152,26 @@ app.use(router.routes()).use(router.allowedMethods());
 app
   .use(likedDescriptionRoutes.routes())
   .use(likedDescriptionRoutes.allowedMethods());
+
+// Serve frontend build in production
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '../dist');
+  console.log('🚀 Serving frontend from:', distPath);
+  app.use(serve(path.join(__dirname, '../dist')));
+
+  // Fallback for Vue SPA routes
+  router.get('(.*)', async (ctx) => {
+    const indexPath = path.join(__dirname, '../dist', 'index.html');
+
+    if (fs.existsSync(indexPath)) {
+      ctx.type = 'html';
+      ctx.body = fs.createReadStream(indexPath);
+    } else {
+      ctx.status = 404;
+      ctx.body = 'Frontend build not found!';
+    }
+  });
+}
 
 // Start server
 // might need to change env variable to just PORT for build
