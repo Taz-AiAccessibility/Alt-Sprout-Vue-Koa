@@ -29,6 +29,32 @@ app.use(
   })
 );
 
+// Use router middleware
+app.use(router.routes()).use(router.allowedMethods());
+app
+  .use(likedDescriptionRoutes.routes())
+  .use(likedDescriptionRoutes.allowedMethods());
+
+// Serve frontend build in production
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '../dist');
+  console.log('🚀 Serving frontend from:', distPath);
+  app.use(serve(path.join(__dirname, '../dist')));
+
+  // Fallback for Vue SPA routes
+  router.get('(.*)', async (ctx) => {
+    const indexPath = path.join(__dirname, '../dist', 'index.html');
+
+    if (fs.existsSync(indexPath)) {
+      ctx.type = 'html';
+      ctx.body = fs.createReadStream(indexPath);
+    } else {
+      ctx.status = 404;
+      ctx.body = 'Frontend build not found!';
+    }
+  });
+}
+
 app.use(koaBody());
 
 app.use(
@@ -147,31 +173,11 @@ router.post(
   }
 );
 
-// Use router middleware
-app.use(router.routes()).use(router.allowedMethods());
-app
-  .use(likedDescriptionRoutes.routes())
-  .use(likedDescriptionRoutes.allowedMethods());
-
-// Serve frontend build in production
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../dist');
-  console.log('🚀 Serving frontend from:', distPath);
-  app.use(serve(path.join(__dirname, '../dist')));
-
-  // Fallback for Vue SPA routes
-  router.get('(.*)', async (ctx) => {
-    const indexPath = path.join(__dirname, '../dist', 'index.html');
-
-    if (fs.existsSync(indexPath)) {
-      ctx.type = 'html';
-      ctx.body = fs.createReadStream(indexPath);
-    } else {
-      ctx.status = 404;
-      ctx.body = 'Frontend build not found!';
-    }
-  });
-}
+// // Use router middleware
+// app.use(router.routes()).use(router.allowedMethods());
+// app
+//   .use(likedDescriptionRoutes.routes())
+//   .use(likedDescriptionRoutes.allowedMethods());
 
 // Start server
 // might need to change env variable to just PORT for build
