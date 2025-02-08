@@ -44,7 +44,7 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     host: true, // Ensures Vite binds to all network interfaces
-    port: 5173, // Standard Vite development port
+    port: 10000, // Standard Vite development port
     strictPort: true, // Prevents running on a random port if 5173 is taken
     allowedHosts: ['.onrender.com', 'localhost'], // ✅ Allow Render domain & local dev
     proxy: {
