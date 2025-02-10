@@ -5,7 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build": "vue-tsc -b && vite build && tsc",
     "preview": "vite preview",
     "start": "concurrently \"npm run dev\" \"npm run server\"",
     "server": "nodemon --watch server --ext ts --exec ts-node --project tsconfig.node.json server/index.ts",
