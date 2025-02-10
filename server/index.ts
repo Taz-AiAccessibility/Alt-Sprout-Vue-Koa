@@ -40,8 +40,9 @@ app.use(
       renew: true, // Auto-renew session
       rolling: true, // Reset expiration on each request
       sameSite: 'lax', // Prevents CSRF issues
-      secure: process.env.NODE_ENV === 'production' && process.env.RENDER !== 'true',
-, // Ensures HTTPS in production
+      secure:
+        process.env.NODE_ENV === 'production' && process.env.RENDER !== 'true',
+
       httpOnly: true, // Prevents JS access to cookie
     },
     app
