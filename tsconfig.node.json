@@ -79,7 +79,7 @@
     "moduleResolution": "Node",
     "strict": true,
     "outDir": "./dist",
-    "rootDir": "./server",
+    "rootDir": ".",
     "allowJs": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
