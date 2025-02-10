@@ -38,6 +38,9 @@ app.use(
       maxAge: 86400000, // 1 day session
       renew: true, // Auto-renew session
       rolling: true, // Reset expiration on each request
+      sameSite: 'lax', // Prevents CSRF issues
+      secure: process.env.NODE_ENV === 'production', // Ensures HTTPS in production
+      httpOnly: true, // Prevents JS access to cookie
     },
     app
   )
