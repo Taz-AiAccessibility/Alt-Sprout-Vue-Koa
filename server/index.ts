@@ -12,6 +12,8 @@ import { queryOpenAI } from './controllers/openAiAltTextController';
 
 import likedDescriptionRoutes from './routes/likedDescriptionRoutes';
 
+const FRONTEND_URL = process.env.VITE_FRONTEND_URL || 'http://localhost:5173';
+
 const app = new Koa();
 const router = new Router();
 
@@ -19,7 +21,7 @@ app.keys = [process.env.SESSION_SECRET!];
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Update this for production
+    origin: FRONTEND_URL, // Update this for production
     credentials: true, // Allows cookies to be sent
   })
 );
@@ -63,12 +65,12 @@ router.get('/auth/google/callback', async (ctx: Context, next) => {
     'google',
     async (err: any, user: User, info: any) => {
       if (err || !user) {
-        ctx.redirect('http://localhost:5173');
+        ctx.redirect(FRONTEND_URL);
         return;
       }
       await ctx.login(user);
       ctx.redirect(
-        `http://localhost:5173?user=${encodeURIComponent(JSON.stringify(user))}`
+        `${FRONTEND_URL}?user=${encodeURIComponent(JSON.stringify(user))}`
       );
     }
   )(ctx, next);

@@ -90,6 +90,9 @@ import TargetAudienceInput from './components/TargetAudienceInput.vue';
 import ResponseDisplay from './components/ResponseDisplay.vue';
 import gitHubIcon from './assets/github-icon.svg';
 
+const BACKEND_URL =
+  import.meta.env.VITE_FRONTEND_URL || 'http://localhost:3000';
+
 export default {
   name: 'App',
   components: {
@@ -125,12 +128,12 @@ export default {
     // );
 
     watch(user, (newUser) => {
-      console.log('👤 User data updated:', newUser);
+      //console.log('👤 User data updated:', newUser);
     });
 
     const fetchUserSession = async () => {
       try {
-        const response = await fetch('http://localhost:3000/user-session', {
+        const response = await fetch(`${BACKEND_URL}/user-session`, {
           credentials: 'include', // Ensures cookies are sent with the request
         });
 
@@ -143,13 +146,13 @@ export default {
             id: data.user.id,
           };
 
-          console.log('✅ User session fetched:', user.value);
+          // console.log('✅ User session fetched:', user.value);
         } else {
           console.warn('⚠️ No user session found.');
           user.value = {};
         }
       } catch (error) {
-        console.error('❌ Error fetching user session:', error);
+        //console.error('❌ Error fetching user session:', error);
       }
     };
 
@@ -157,12 +160,12 @@ export default {
 
     // Redirect to Google OAuth Login
     const loginWithGoogle = () => {
-      window.location.href = 'http://localhost:3000/auth/google';
+      window.location.href = `${BACKEND_URL}/auth/google`;
     };
 
     const logout = async () => {
       try {
-        await fetch('http://localhost:3000/logout', {
+        await fetch(`${BACKEND_URL}/logout`, {
           method: 'GET',
           credentials: 'include', // Ensures cookies are included
         });
@@ -180,7 +183,7 @@ export default {
       errorMessage.value = null;
 
       try {
-        const response = await fetch('http://localhost:3000/alt-text', {
+        const response = await fetch(`${BACKEND_URL}/alt-text`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

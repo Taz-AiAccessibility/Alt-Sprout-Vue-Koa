@@ -60,6 +60,9 @@
 <script lang="ts">
 import { defineComponent, ref, type PropType } from 'vue';
 
+const BACKEND_URL =
+  import.meta.env.VITE_FRONTEND_URL || 'http://localhost:3000';
+
 export default defineComponent({
   name: 'ResponseDisplay',
   props: {
@@ -137,7 +140,7 @@ export default defineComponent({
       };
 
       try {
-        const response = await fetch('http://localhost:3000/like-description', {
+        const response = await fetch(`${BACKEND_URL}/like-description`, {
           method: 'POST',
           credentials: 'include', // 🔥 Ensures cookies are sent
           headers: {
