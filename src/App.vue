@@ -127,9 +127,9 @@ export default {
     //   }
     // );
 
-    watch(user, (newUser) => {
-      //console.log('👤 User data updated:', newUser);
-    });
+    // watch(user, (newUser) => {
+    //   //console.log('👤 User data updated:', newUser);
+    // });
 
     const fetchUserSession = async () => {
       try {
