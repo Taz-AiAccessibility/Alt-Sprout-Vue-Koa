@@ -83,7 +83,7 @@
 </template>
 
 <script lang="ts">
-import { ref, reactive, watch, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import ImageInput from './components/ImageInput.vue';
 import SubjectInput from './components/SubjectInput.vue';
 import TargetAudienceInput from './components/TargetAudienceInput.vue';
