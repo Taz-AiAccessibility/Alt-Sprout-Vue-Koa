@@ -14,6 +14,8 @@ import likedDescriptionRoutes from './routes/likedDescriptionRoutes';
 
 const FRONTEND_URL = process.env.VITE_FRONTEND_URL || 'http://localhost:5173';
 
+console.log('🔍 VITE_BACKEND_URL from Vite:', process.env.VITE_BACKEND_URL);
+
 const app = new Koa();
 const router = new Router();
 
