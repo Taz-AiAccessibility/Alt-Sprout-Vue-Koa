@@ -21,6 +21,7 @@ const app = new Koa();
 const router = new Router();
 
 app.keys = [process.env.SESSION_SECRET!];
+app.proxy = true;
 
 app.use(
   cors({
@@ -39,7 +40,8 @@ app.use(
       renew: true, // Auto-renew session
       rolling: true, // Reset expiration on each request
       sameSite: 'lax', // Prevents CSRF issues
-      secure: process.env.NODE_ENV === 'production', // Ensures HTTPS in production
+      secure: process.env.NODE_ENV === 'production' && process.env.RENDER !== 'true',
+, // Ensures HTTPS in production
       httpOnly: true, // Prevents JS access to cookie
     },
     app
