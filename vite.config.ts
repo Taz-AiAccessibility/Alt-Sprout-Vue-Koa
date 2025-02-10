@@ -1,16 +1,30 @@
-// https://vite.dev/config/
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-// https://vite.dev/config/
+
 export default defineConfig({
   plugins: [vue()],
-  server: {
-    proxy: {
-      '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:3000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
-  },
 });
+
+// Option 2: Keep Proxy for Local Development
+// If you want to keep using /api during development but disable it in production, use:
+
+// ts
+// Copy
+// Edit
+// import { defineConfig } from 'vite';
+// import vue from '@vitejs/plugin-vue';
+
+// export default defineConfig({
+//   plugins: [vue()],
+//   server: {
+//     proxy: process.env.NODE_ENV !== 'production'
+//       ? {
+//           '/api': {
+//             target: 'http://localhost:3000',
+//             changeOrigin: true,
+//             rewrite: (path) => path.replace(/^\/api/, ''),
+//           },
+//         }
+//       : undefined, // Disable proxy in production
+//   },
+// });
