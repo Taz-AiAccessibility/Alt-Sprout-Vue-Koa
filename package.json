@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "start": "concurrently \"npm run dev\" \"npm run server\"",
     "server": "nodemon --watch server --ext ts --exec ts-node --project tsconfig.node.json server/index.ts",
-    "render:server": "node server/index.js"
+    "render:server": "node dist/index.js"
   },
   "dependencies": {
     "@koa/cors": "^5.0.0",
