@@ -90,7 +90,8 @@ import TargetAudienceInput from './components/TargetAudienceInput.vue';
 import ResponseDisplay from './components/ResponseDisplay.vue';
 import gitHubIcon from './assets/github-icon.svg';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL || 'https://alt-sprout-server.onrender.com';
 
 console.log('🔍 BACKEND_URL:', BACKEND_URL);
 
