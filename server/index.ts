@@ -15,7 +15,7 @@ import likedDescriptionRoutes from './routes/likedDescriptionRoutes';
 const FRONTEND_URL =
   process.env.VITE_FRONTEND_URL || 'https://alt-sprout-dance.onrender.com';
 
-console.log('🔍 BACKEND_URL:', FRONTEND_URL);
+console.log('🔍 FRONTEND_URL:', FRONTEND_URL);
 
 const app = new Koa();
 const router = new Router();
