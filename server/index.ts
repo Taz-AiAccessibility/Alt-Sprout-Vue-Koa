@@ -32,6 +32,14 @@ app.use(
 
 app.use(koaBody());
 
+// app.use(async (ctx, next) => {
+//   if (ctx.headers['x-forwarded-proto'] !== 'https') {
+//     ctx.redirect(`https://${ctx.hostname}${ctx.url}`);
+//   } else {
+//     await next();
+//   }
+// });
+
 app.use(
   session(
     {
@@ -39,7 +47,7 @@ app.use(
       maxAge: 86400000, // 1 day session
       renew: true, // Auto-renew session
       rolling: true, // Reset expiration on each request
-      sameSite: 'lax', // Prevents CSRF issues
+      sameSite: 'None', // Prevents CSRF issues
       secure:
         process.env.NODE_ENV === 'production' && process.env.RENDER !== 'true',
 
