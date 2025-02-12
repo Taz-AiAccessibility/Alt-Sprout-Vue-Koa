@@ -1,6 +1,6 @@
 import Koa, { Context, Next } from 'koa';
 import Router from '@koa/router';
-import cors from '@koa/cors';
+import cors, { Options as CorsOptions } from '@koa/cors';
 import koaBody from 'koa-body';
 import session, { SessionOptions } from 'koa-session';
 import passport, { User } from './auth';
@@ -34,15 +34,30 @@ app.use(async (ctx, next) => {
   await next();
 });
 
-app.use(
-  cors({
-    origin: FRONTEND_URL, // Update this for production
-    credentials: true, // Allows cookies to be sent
-    allowMethods: ['GET', 'POST', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-    exposeHeaders: ['set-cookie'], // NEW: Allows frontend to receive cookies
-  })
-);
+// app.use(
+//   cors({
+//     origin: [FRONTEND_URL, 'https://api.altsprout.dance'], // Update this for production
+//     credentials: true, // Allows cookies to be sent
+//     allowMethods: ['GET', 'POST', 'OPTIONS'],
+//     allowHeaders: ['Content-Type', 'Authorization'],
+//     exposeHeaders: ['set-cookie'], // NEW: Allows frontend to receive cookies
+//   })
+// );
+const allowedOrigins = new Set([
+  'https://altsprout.dance',
+  'https://api.altsprout.dance',
+]);
+
+const corsOptions: CorsOptions = {
+  origin: (ctx) =>
+    allowedOrigins.has(ctx.request.origin) ? ctx.request.origin : '',
+  credentials: true, // Allows cookies to be sent
+  allowMethods: ['GET', 'POST', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  exposeHeaders: ['set-cookie'], // NEW: Allows frontend to receive cookies
+};
+
+app.use(cors(corsOptions));
 
 app.use(koaBody());
 
