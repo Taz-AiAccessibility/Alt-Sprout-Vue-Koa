@@ -161,6 +161,7 @@ export default {
     const fetchUserSession = async () => {
       try {
         const response = await fetch(`${BACKEND_URL}/user-session`, {
+          method: 'GET',
           credentials: 'include', // Ensures cookies are sent with the request
         });
 

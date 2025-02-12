@@ -23,7 +23,7 @@ app.proxy = true;
 
 app.use(async (ctx, next) => {
   if (ctx.headers['x-forwarded-proto'] !== 'https') {
-    ctx.set('X-Forwarded-Proto', 'https');
+    ctx.redirect(`https://${ctx.hostname}${ctx.url}`);
   }
   await next();
 });
