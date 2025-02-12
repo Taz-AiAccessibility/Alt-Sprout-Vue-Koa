@@ -26,6 +26,9 @@ app.use(
   cors({
     origin: FRONTEND_URL, // Update this for production
     credentials: true, // Allows cookies to be sent
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    exposeHeaders: ['set-cookie'], // NEW: Allows frontend to receive cookies
   })
 );
 
@@ -79,10 +82,7 @@ const sessionConfig: Partial<SessionOptions> = {
   renew: true, // Auto-renew session
   rolling: true, // Reset expiration on each request
   sameSite: 'none' as const, // Ensure cross-origin cookie compatibility
-  secure:
-    process.env.NODE_ENV === 'production' && process.env.RENDER !== 'true'
-      ? true
-      : false, // Adjust based on Render proxy
+  secure: false, // Adjust based on Render proxy, will need to adjust for local development!
   httpOnly: true, // Prevents JavaScript access
   // domain: '.altsprout.dance', // Allows sharing across subdomains
 };
