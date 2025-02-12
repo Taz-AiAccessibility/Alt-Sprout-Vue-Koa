@@ -13,7 +13,7 @@ import { queryOpenAI } from './controllers/openAiAltTextController';
 import likedDescriptionRoutes from './routes/likedDescriptionRoutes';
 
 const FRONTEND_URL =
-  process.env.VITE_FRONTEND_URL || 'https://alt-sprout-dance.onrender.com';
+  process.env.VITE_FRONTEND_URL || 'https://altsprout.dance/';
 
 console.log('🔍 FRONTEND_URL:', FRONTEND_URL);
 

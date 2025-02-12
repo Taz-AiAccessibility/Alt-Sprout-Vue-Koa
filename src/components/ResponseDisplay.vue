@@ -61,7 +61,7 @@
 import { defineComponent, ref, type PropType } from 'vue';
 
 const BACKEND_URL =
-  import.meta.env.VITE_BACKEND_URL || 'https://alt-sprout-server.onrender.com';
+  import.meta.env.VITE_BACKEND_URL || 'https://api.altsprout.dance/';
 
 export default defineComponent({
   name: 'ResponseDisplay',
