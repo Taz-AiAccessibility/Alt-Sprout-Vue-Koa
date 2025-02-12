@@ -143,6 +143,7 @@ router.get('/auth/google/callback', async (ctx: Context, next) => {
 
 router.get('/user-session', async (ctx) => {
   console.log('🔍 Checking session for user...');
+  console.log('📝 Current Session:', ctx.session);
 
   if (ctx.isAuthenticated() && ctx.state.user) {
     console.log('✅ User in session:', ctx.state.user);
