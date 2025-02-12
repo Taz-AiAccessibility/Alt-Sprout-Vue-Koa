@@ -28,6 +28,12 @@ app.use(async (ctx, next) => {
   await next();
 });
 
+app.use(async (ctx, next) => {
+  console.log('🔍 Incoming Request:', ctx.method, ctx.url);
+  console.log('🍪 Cookies Received:', ctx.cookies.get('koa.sess'));
+  await next();
+});
+
 app.use(
   cors({
     origin: FRONTEND_URL, // Update this for production
@@ -91,6 +97,9 @@ const sessionConfig: Partial<SessionOptions> = {
   secure: false, // Adjust based on Render proxy, will need to adjust for local development!
   httpOnly: true, // Prevents JavaScript access
   // domain: '.altsprout.dance', // Allows sharing across subdomains
+  beforeSave: (ctx, session) => {
+    console.log('🔹 Before Save:', session);
+  },
 };
 
 // Attach session to Koa app

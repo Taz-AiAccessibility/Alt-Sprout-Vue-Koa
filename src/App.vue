@@ -133,13 +133,42 @@ export default {
     //   //console.log('👤 User data updated:', newUser);
     // });
 
+    // const fetchUserSession = async () => {
+    //   try {
+    //     const response = await fetch(`${BACKEND_URL}/user-session`, {
+    //       credentials: 'include', // Ensures cookies are sent with the request
+    //     });
+
+    //     const data = await response.json();
+
+    //     if (data.user) {
+    //       user.value = {
+    //         name: data.user.name,
+    //         avatar_url: data.user.avatar_url,
+    //         id: data.user.id,
+    //       };
+
+    //       // console.log('✅ User session fetched:', user.value);
+    //     } else {
+    //       console.warn('⚠️ No user session found.');
+    //       user.value = {}; a
+    //     }
+    //   } catch (error) {
+    //     //console.error('❌ Error fetching user session:', error);
+    //   }
+    // };
+
     const fetchUserSession = async () => {
       try {
         const response = await fetch(`${BACKEND_URL}/user-session`, {
           credentials: 'include', // Ensures cookies are sent with the request
         });
 
+        console.log('🔍 Request Headers:', response.headers);
+
         const data = await response.json();
+
+        console.log('🛑 Response Headers:', [...response.headers.entries()]);
 
         if (data.user) {
           user.value = {
@@ -147,14 +176,13 @@ export default {
             avatar_url: data.user.avatar_url,
             id: data.user.id,
           };
-
-          // console.log('✅ User session fetched:', user.value);
+          console.log('✅ User session fetched:', user.value);
         } else {
           console.warn('⚠️ No user session found.');
           user.value = {};
         }
       } catch (error) {
-        //console.error('❌ Error fetching user session:', error);
+        console.error('❌ Error fetching user session:', error);
       }
     };
 
