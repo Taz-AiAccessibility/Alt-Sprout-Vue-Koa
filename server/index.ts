@@ -144,7 +144,8 @@ router.get('/user-session', async (ctx) => {
       error,
     } = await supabase.auth.getSession();
 
-    console.log('🟡 Supabase session response:', session, error);
+    console.log('🟢 Supabase Session:', session);
+    console.log('🔴 Supabase Error:', error);
 
     if (error || !session) {
       console.log('⚠️ No valid Supabase session found, clearing cookie.');
