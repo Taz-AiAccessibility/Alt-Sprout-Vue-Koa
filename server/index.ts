@@ -15,7 +15,6 @@ import likedDescriptionRoutes from './routes/likedDescriptionRoutes';
 const FRONTEND_URL = process.env.VITE_FRONTEND_URL || 'https://altsprout.dance';
 
 console.log('🔍 FRONTEND_URL:', FRONTEND_URL);
-
 const app = new Koa();
 const router = new Router();
 
@@ -155,8 +154,8 @@ router.get('/user-session', async (ctx) => {
     // 🔒 Securely store the token in HTTP-Only cookie
     ctx.cookies.set('supabase_token', session.access_token, {
       httpOnly: true, // Prevents JavaScript access
-      secure: process.env.NODE_ENV === 'production', // Ensures HTTPS in production
-      sameSite: 'lax', // Protects against CSRF
+      secure: false, // Adjust based on Render proxy, will need to adjust for local development!
+      sameSite: 'none', // Protects against CSRF
       maxAge: 60 * 60 * 1000, // 1 hour expiration
     });
 
