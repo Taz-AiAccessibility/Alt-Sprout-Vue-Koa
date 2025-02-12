@@ -2,7 +2,7 @@ import Koa, { Context, Next } from 'koa';
 import Router from '@koa/router';
 import cors from '@koa/cors';
 import koaBody from 'koa-body';
-import session from 'koa-session';
+import session, { SessionOptions } from 'koa-session';
 import passport, { User } from './auth';
 import { supabase } from './supabase';
 
@@ -39,22 +39,56 @@ app.use(koaBody());
 //   }
 // });
 
-app.use(
-  session(
-    {
-      key: 'koa.sess', // Default session key
-      maxAge: 86400000, // 1 day session
-      renew: true, // Auto-renew session
-      rolling: true, // Reset expiration on each request
-      sameSite: 'None', // Prevents CSRF issues
-      secure:
-        process.env.NODE_ENV === 'production' && process.env.RENDER !== 'true',
+// app.use(
+//   session(
+//     {
+//       key: 'koa.sess', // Default session key
+//       maxAge: 86400000, // 1 day session
+//       renew: true, // Auto-renew session
+//       rolling: true, // Reset expiration on each request
+//       sameSite: 'None', // Prevents CSRF issues
+//       secure:
+//         process.env.NODE_ENV === 'production' && process.env.RENDER !== 'true',
 
-      httpOnly: true, // Prevents JS access to cookie
-    },
-    app
-  )
-);
+//       httpOnly: true, // Prevents JS access to cookie
+//     },
+//     app
+//   )
+// );
+
+// app.use(
+//   session(
+//     {
+//       key: 'koa.sess', // Default session key
+//       maxAge: 86400000, // 1 day session
+//       renew: true, // Auto-renew session
+//       rolling: true, // Reset expiration on each request
+//       sameSite: 'None', // Allows cross-origin cookies
+//       secure: true, // Must be true for HTTPS
+//       httpOnly: true, // Prevents JavaScript access
+//       domain: '.altsprout.dance', // Allows sharing across subdomains
+//     },
+//     app
+//   )
+// );
+
+// Configure session options
+const sessionConfig: Partial<SessionOptions> = {
+  key: 'koa.sess', // Default session key
+  maxAge: 86400000, // 1 day session
+  renew: true, // Auto-renew session
+  rolling: true, // Reset expiration on each request
+  sameSite: 'none' as const, // Ensure cross-origin cookie compatibility
+  secure:
+    process.env.NODE_ENV === 'production' && process.env.RENDER !== 'true'
+      ? true
+      : false, // Adjust based on Render proxy
+  httpOnly: true, // Prevents JavaScript access
+  // domain: '.altsprout.dance', // Allows sharing across subdomains
+};
+
+// Attach session to Koa app
+app.use(session(sessionConfig, app));
 // Initialize passport
 app.use(passport.initialize());
 // Use passport session
