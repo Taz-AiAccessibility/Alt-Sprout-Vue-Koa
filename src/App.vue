@@ -91,7 +91,7 @@ import ResponseDisplay from './components/ResponseDisplay.vue';
 import gitHubIcon from './assets/github-icon.svg';
 
 const BACKEND_URL =
-  import.meta.env.VITE_BACKEND_URL || 'https://api.altsprout.dance/';
+  import.meta.env.VITE_BACKEND_URL || 'https://api.altsprout.dance';
 
 console.log('🔍 BACKEND_URL:', BACKEND_URL);
 
