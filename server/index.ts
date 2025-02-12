@@ -21,6 +21,13 @@ const router = new Router();
 app.keys = [process.env.SESSION_SECRET!];
 app.proxy = true;
 
+app.use(async (ctx, next) => {
+  if (ctx.headers['x-forwarded-proto'] !== 'https') {
+    ctx.set('X-Forwarded-Proto', 'https');
+  }
+  await next();
+});
+
 app.use(
   cors({
     origin: FRONTEND_URL, // Update this for production
@@ -131,34 +138,74 @@ router.get('/user-session', async (ctx) => {
   if (ctx.isAuthenticated() && ctx.state.user) {
     console.log('✅ User in session:', ctx.state.user);
 
-    const { data, error } = await supabase.auth.getSession();
-    const session = data?.session;
+    // Fetch Supabase session
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    console.log('🟡 Supabase session response:', session, error);
 
     if (error || !session) {
-      console.error('❌ No valid session token found:', error);
-      ctx.cookies.set('supabase_token', '', { maxAge: 0 });
+      console.log('⚠️ No valid Supabase session found, clearing cookie.');
+      ctx.cookies.set('supabase_token', '', { maxAge: 0 }); // Clear cookie
       ctx.body = { user: null };
       return;
     }
 
     console.log('✅ SESSION TOKEN:', session.access_token);
 
+    // Set cookie
     ctx.cookies.set('supabase_token', session.access_token, {
       httpOnly: true,
-      secure: false, // Adjust for Render proxy
+      secure: true,
       sameSite: 'none',
       maxAge: 60 * 60 * 1000, // 1 hour expiration
+      path: '/',
     });
-
-    console.log('🔥 COOKIES SET:', ctx.cookies.get('supabase_token')); // Log the cookie value
 
     ctx.body = { user: ctx.state.user };
   } else {
     console.log('❌ No user session found.');
-    ctx.cookies.set('supabase_token', '', { maxAge: 0 });
+    ctx.cookies.set('supabase_token', '', { maxAge: 0 }); // Clear token
     ctx.body = { user: null };
   }
 });
+
+// router.get('/user-session', async (ctx) => {
+//   console.log('🔍 Checking session for user...');
+
+//   if (ctx.isAuthenticated() && ctx.state.user) {
+//     console.log('✅ User in session:', ctx.state.user);
+
+//     const { data, error } = await supabase.auth.getSession();
+//     const session = data?.session;
+
+//     if (error || !session) {
+//       console.error('❌ No valid session token found:', error);
+//       ctx.cookies.set('supabase_token', '', { maxAge: 0 });
+//       ctx.body = { user: null };
+//       return;
+//     }
+
+//     console.log('✅ SESSION TOKEN:', session.access_token);
+
+//     ctx.cookies.set('supabase_token', session.access_token, {
+//       httpOnly: true,
+//       secure: false, // Adjust for Render proxy
+//       sameSite: 'none',
+//       maxAge: 60 * 60 * 1000, // 1 hour expiration
+//     });
+
+//     console.log('🔥 COOKIES SET:', ctx.cookies.get('supabase_token')); // Log the cookie value
+
+//     ctx.body = { user: ctx.state.user };
+//   } else {
+//     console.log('❌ No user session found.');
+//     ctx.cookies.set('supabase_token', '', { maxAge: 0 });
+//     ctx.body = { user: null };
+//   }
+// });
 
 // router.get('/user-session', async (ctx) => {
 //   console.log('🔍 Checking session for user...');
