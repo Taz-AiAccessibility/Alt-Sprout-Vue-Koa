@@ -140,15 +140,63 @@ router.get(
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
+// router.get('/auth/google/callback', async (ctx: Context, next) => {
+//   return passport.authenticate(
+//     'google',
+//     async (err: any, user: User, info: any) => {
+//       if (err || !user) {
+//         ctx.redirect(FRONTEND_URL);
+//         return;
+//       }
+//       // await ctx.login(user);
+//       // ctx.redirect(
+//       //   `${FRONTEND_URL}?user=${encodeURIComponent(JSON.stringify(user))}`
+//       // );
+
+//     }
+//   )(ctx, next);
+// });
+
 router.get('/auth/google/callback', async (ctx: Context, next) => {
   return passport.authenticate(
     'google',
     async (err: any, user: User, info: any) => {
       if (err || !user) {
+        console.error('❌ Authentication error:', err || 'No user found');
         ctx.redirect(FRONTEND_URL);
         return;
       }
-      await ctx.login(user);
+
+      // Log the user in
+      await new Promise<void>((resolve, reject) => {
+        ctx.login(user, (loginErr: any) => {
+          if (loginErr) {
+            console.error('❌ Login error:', loginErr);
+            ctx.redirect(FRONTEND_URL);
+            reject(loginErr);
+          } else {
+            resolve();
+          }
+        });
+      });
+
+      // 🚀 ✅ Explicitly save the session after login
+      if (ctx.session) {
+        try {
+          await new Promise<void>((resolve, reject) => {
+            ctx.session.save((saveErr: any) =>
+              saveErr ? reject(saveErr) : resolve()
+            );
+          });
+          console.log('✅ Session saved successfully.');
+        } catch (sessionErr) {
+          console.error('❌ Session save error:', sessionErr);
+          ctx.redirect(FRONTEND_URL);
+          return;
+        }
+      }
+
+      // Redirect to the frontend with user info
       ctx.redirect(
         `${FRONTEND_URL}?user=${encodeURIComponent(JSON.stringify(user))}`
       );
