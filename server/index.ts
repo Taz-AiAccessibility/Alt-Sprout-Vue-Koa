@@ -180,29 +180,88 @@ router.get('/auth/google/callback', async (ctx: Context, next) => {
         });
       });
 
-      // 🚀 ✅ Explicitly save the session after login
-      if (ctx.session) {
-        try {
-          await new Promise<void>((resolve, reject) => {
-            ctx.session.save((saveErr: any) =>
-              saveErr ? reject(saveErr) : resolve()
-            );
-          });
-          console.log('✅ Session saved successfully.');
-        } catch (sessionErr) {
-          console.error('❌ Session save error:', sessionErr);
-          ctx.redirect(FRONTEND_URL);
-          return;
-        }
+      console.log('✅ User logged in:', user);
+
+      // Fetch Supabase session
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error || !session) {
+        console.error('❌ No valid Supabase session:', error);
+        ctx.cookies.set('supabase_token', '', { maxAge: 0 });
+        ctx.redirect(FRONTEND_URL);
+        return;
       }
 
-      // Redirect to the frontend with user info
+      console.log('✅ Supabase Session Found:', session);
+
+      // **🔑 Set Cookie for Supabase Token**
+      ctx.cookies.set('supabase_token', session.access_token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 60 * 60 * 1000, // 1 hour expiration
+        path: '/',
+      });
+
+      console.log('🍪 Cookie Set: supabase_token');
+
+      // Redirect to the frontend
       ctx.redirect(
         `${FRONTEND_URL}?user=${encodeURIComponent(JSON.stringify(user))}`
       );
     }
   )(ctx, next);
 });
+
+// router.get('/auth/google/callback', async (ctx: Context, next) => {
+//   return passport.authenticate(
+//     'google',
+//     async (err: any, user: User, info: any) => {
+//       if (err || !user) {
+//         console.error('❌ Authentication error:', err || 'No user found');
+//         ctx.redirect(FRONTEND_URL);
+//         return;
+//       }
+
+//       // Log the user in
+//       await new Promise<void>((resolve, reject) => {
+//         ctx.login(user, (loginErr: any) => {
+//           if (loginErr) {
+//             console.error('❌ Login error:', loginErr);
+//             ctx.redirect(FRONTEND_URL);
+//             reject(loginErr);
+//           } else {
+//             resolve();
+//           }
+//         });
+//       });
+
+//       // 🚀 ✅ Explicitly save the session after login
+//       if (ctx.session) {
+//         try {
+//           await new Promise<void>((resolve, reject) => {
+//             ctx.session.save((saveErr: any) =>
+//               saveErr ? reject(saveErr) : resolve()
+//             );
+//           });
+//           console.log('✅ Session saved successfully.');
+//         } catch (sessionErr) {
+//           console.error('❌ Session save error:', sessionErr);
+//           ctx.redirect(FRONTEND_URL);
+//           return;
+//         }
+//       }
+
+//       // Redirect to the frontend with user info
+//       ctx.redirect(
+//         `${FRONTEND_URL}?user=${encodeURIComponent(JSON.stringify(user))}`
+//       );
+//     }
+//   )(ctx, next);
+// });
 
 router.get('/user-session', async (ctx) => {
   console.log('🔍 Checking session for user...');
@@ -217,26 +276,28 @@ router.get('/user-session', async (ctx) => {
       error,
     } = await supabase.auth.getSession();
 
-    console.log('🟢 Supabase Session:', session);
-    console.log('🔴 Supabase Error:', error);
-
     if (error || !session) {
-      console.log('⚠️ No valid Supabase session found, clearing cookie.');
-      ctx.cookies.set('supabase_token', '', { maxAge: 0 }); // Clear cookie
+      console.error('❌ No valid Supabase session:', error);
+      ctx.cookies.set('supabase_token', '', { maxAge: 0 });
       ctx.body = { user: null };
       return;
     }
 
     console.log('✅ SESSION TOKEN:', session.access_token);
 
-    // Set cookie
-    ctx.cookies.set('supabase_token', session.access_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: 60 * 60 * 1000, // 1 hour expiration
-      path: '/',
-    });
+    // **🔑 Set Cookie for Supabase Token**
+    if (!ctx.cookies.get('supabase_token')) {
+      ctx.cookies.set('supabase_token', session.access_token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 60 * 60 * 1000, // 1 hour expiration
+        path: '/',
+      });
+      console.log('🍪 Cookie Set: supabase_token');
+    } else {
+      console.log('🍪 Cookie already exists.');
+    }
 
     ctx.body = { user: ctx.state.user };
   } else {
@@ -245,6 +306,48 @@ router.get('/user-session', async (ctx) => {
     ctx.body = { user: null };
   }
 });
+
+// router.get('/user-session', async (ctx) => {
+//   console.log('🔍 Checking session for user...');
+//   console.log('📝 Current Session:', ctx.session);
+
+//   if (ctx.isAuthenticated() && ctx.state.user) {
+//     console.log('✅ User in session:', ctx.state.user);
+
+//     // Fetch Supabase session
+//     const {
+//       data: { session },
+//       error,
+//     } = await supabase.auth.getSession();
+
+//     console.log('🟢 Supabase Session:', session);
+//     console.log('🔴 Supabase Error:', error);
+
+//     if (error || !session) {
+//       console.log('⚠️ No valid Supabase session found, clearing cookie.');
+//       ctx.cookies.set('supabase_token', '', { maxAge: 0 }); // Clear cookie
+//       ctx.body = { user: null };
+//       return;
+//     }
+
+//     console.log('✅ SESSION TOKEN:', session.access_token);
+
+//     // Set cookie
+//     ctx.cookies.set('supabase_token', session.access_token, {
+//       httpOnly: true,
+//       secure: true,
+//       sameSite: 'none',
+//       maxAge: 60 * 60 * 1000, // 1 hour expiration
+//       path: '/',
+//     });
+
+//     ctx.body = { user: ctx.state.user };
+//   } else {
+//     console.log('❌ No user session found.');
+//     ctx.cookies.set('supabase_token', '', { maxAge: 0 }); // Clear token
+//     ctx.body = { user: null };
+//   }
+// });
 
 // router.get('/user-session', async (ctx) => {
 //   console.log('🔍 Checking session for user...');
