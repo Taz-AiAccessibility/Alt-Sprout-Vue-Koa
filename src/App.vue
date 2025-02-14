@@ -138,7 +138,7 @@ export default {
 
     // Run only ONCE
     onMounted(async () => {
-      supabase.auth.onAuthStateChange(async (event, session) => {
+      supabase.auth.onAuthStateChange(async (_, session) => {
         if (session) {
           setUser();
         } else {
@@ -151,7 +151,7 @@ export default {
     });
 
     const loginWithGoogle = async () => {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: FRONTEND_URL,

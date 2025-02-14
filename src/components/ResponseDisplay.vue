@@ -147,7 +147,7 @@ export default defineComponent({
           userId: props.userId,
         };
 
-        const response = await fetch('http://localhost:3000/like-description', {
+        const response = await fetch(`${BACKEND_URL}/like-description`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
