@@ -89,6 +89,15 @@ import SubjectInput from './components/SubjectInput.vue';
 import TargetAudienceInput from './components/TargetAudienceInput.vue';
 import ResponseDisplay from './components/ResponseDisplay.vue';
 import gitHubIcon from './assets/github-icon.svg';
+import { supabase } from './utils/supabase';
+const { data } = await supabase.auth.getSession();
+
+console.log('SUPABASE SESSION:', data.session?.access_token);
+(window as any).supabase = supabase;
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+const FRONTEND_URL =
+  import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
 
 export default {
   name: 'App',
@@ -123,67 +132,91 @@ export default {
     //     }
     //   }
     // );
+    const setUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
 
-    watch(user, (newUser) => {
-      console.log('👤 User data updated:', newUser);
-    });
+      if (error) {
+        console.error('❌ Error fetching user:', error);
+        return;
+      }
 
-    const fetchUserSession = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/user-session', {
-          credentials: 'include', // Ensures cookies are sent with the request
-        });
-
-        const data = await response.json();
-
-        if (data.user) {
-          user.value = {
-            name: data.user.name,
-            avatar_url: data.user.avatar_url,
-            id: data.user.id,
-          };
-
-          console.log('✅ User session fetched:', user.value);
-        } else {
-          console.warn('⚠️ No user session found.');
-          user.value = {};
-        }
-      } catch (error) {
-        console.error('❌ Error fetching user session:', error);
+      if (data.user) {
+        user.value = {
+          id: data.user.id,
+          name: data.user.user_metadata?.full_name || 'Anonymous',
+          avatar_url: data.user.user_metadata?.avatar_url || '',
+        };
+        console.log('✅ User data updated:', user.value);
       }
     };
 
-    onMounted(fetchUserSession);
+    // ✅ Run only ONCE
+    onMounted(async () => {
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log(`🔄 Auth state changed: ${event}`);
 
-    // Redirect to Google OAuth Login
-    const loginWithGoogle = () => {
-      window.location.href = 'http://localhost:3000/auth/google';
+        if (session) {
+          console.log('✅ New session:', session);
+          setUser();
+        } else {
+          console.log('🚪 User signed out');
+          user.value = {};
+        }
+      });
+
+      // ✅ Directly check session from Supabase
+      await setUser();
+    });
+
+    const loginWithGoogle = async () => {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: FRONTEND_URL,
+        },
+      });
+
+      console.log('loginWithGoogle data:', data);
+
+      if (error) {
+        console.error('OAuth Error:', error.message);
+      }
     };
 
     const logout = async () => {
       try {
-        await fetch('http://localhost:3000/logout', {
-          method: 'GET',
-          credentials: 'include', // Ensures cookies are included
-        });
-
-        user.value = {}; // Clears user state
-        window.location.href = '/'; // Redirect to home page
+        await supabase.auth.signOut();
+        user.value = {};
       } catch (error) {
         console.error('❌ Logout failed:', error);
       }
     };
 
-    // Form submission handler
+    // ✅ Secure API Request Handling
     const handleSubmit = async () => {
       isLoading.value = true;
       errorMessage.value = null;
 
       try {
-        const response = await fetch('http://localhost:3000/alt-text', {
+        // ✅ Ensure session is refreshed before making request
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
+
+        if (sessionError || !sessionData?.session?.access_token) {
+          throw new Error('User session not found or expired');
+        }
+
+        console.log(
+          '🚀 Sending API request with token:',
+          sessionData.session.access_token
+        );
+
+        const response = await fetch(`${BACKEND_URL}/alt-text`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.session.access_token}`, // ✅ Correct Authorization header
+          },
           body: JSON.stringify({
             userUrl: formData.imageUrl,
             imageContext: formData.subjects,
@@ -191,13 +224,16 @@ export default {
           }),
         });
 
-        if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`API error: ${response.statusText} - ${errorText}`);
+        }
 
         const data = await response.json();
         altTextResult.value = data;
         showForm.value = false;
       } catch (error: any) {
-        console.error('Error submitting form:', error);
+        console.error('❌ Error submitting form:', error);
         errorMessage.value = error.message || 'Something went wrong';
       } finally {
         isLoading.value = false;

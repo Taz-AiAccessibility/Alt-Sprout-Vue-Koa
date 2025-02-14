@@ -59,6 +59,8 @@
 
 <script lang="ts">
 import { defineComponent, ref, type PropType } from 'vue';
+import { supabase } from '../utils/supabase';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 export default defineComponent({
   name: 'ResponseDisplay',
@@ -122,86 +124,48 @@ export default defineComponent({
       }
     };
 
-    // const toggleLike = async (type: 'simple' | 'complex') => {
-    //   if (!props.userId) {
-    //     console.error('❌ User not logged in. Missing userId.');
-    //     return;
-    //   }
-
-    //   const payload = {
-    //     descriptionType: type,
-    //     descriptionText: props.responseText[type],
-    //     descriptionOrigin: props.responseText.description_origin,
-    //     subjects: props.responseText.subjects,
-    //     targetAudience: props.responseText.targetAudience,
-    //   };
-
-    //   const token = localStorage.getItem('supabase_token'); // ✅ Retrieve stored token
-    //   if (!token) {
-    //     console.error('❌ No authentication token found!');
-    //     return;
-    //   }
-
-    //   console.log(props.responseText.description_origin);
-
-    //   try {
-    //     const response = await fetch('http://localhost:3000/like-description', {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         Authorization: `Bearer ${token}`, // ✅ Include token
-    //       },
-    //       credentials: 'include',
-    //       body: JSON.stringify(payload),
-    //     });
-
-    //     const data = await response.json();
-
-    //     if (!response.ok) {
-    //       throw new Error(data.error || 'Failed to save like');
-    //     }
-
-    //     console.log('✅ Like saved:', data);
-
-    //     // ✅ Mark only this specific description as liked
-    //     liked.value[type] = true;
-    //   } catch (error) {
-    //     console.error('❌ Error saving like:', error);
-    //   }
-    // };
-
     const toggleLike = async (type: 'simple' | 'complex') => {
       if (!props.userId) {
         console.error('❌ User not logged in. Missing userId.');
         return;
       }
 
-      const payload = {
-        descriptionType: type,
-        descriptionText: props.responseText[type],
-        descriptionOrigin: props.responseText.description_origin,
-        subjects: props.responseText.subjects,
-        targetAudience: props.responseText.targetAudience,
-      };
-
       try {
+        // ✅ Fetch session token
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
+        if (sessionError || !sessionData?.session?.access_token) {
+          throw new Error('User session not found or expired');
+        }
+
+        console.log('🚀 Sending Like Request', { type, userId: props.userId });
+        console.log('🔑 Token:', sessionData.session.access_token);
+
+        const payload = {
+          descriptionType: type,
+          descriptionText: props.responseText[type],
+          descriptionOrigin: props.responseText.description_origin,
+          subjects: props.responseText.subjects,
+          targetAudience: props.responseText.targetAudience,
+          userId: props.userId, // ✅ Explicitly send userId
+        };
+
         const response = await fetch('http://localhost:3000/like-description', {
           method: 'POST',
-          credentials: 'include', // 🔥 Ensures cookies are sent
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.session.access_token}`, // ✅ Attach JWT
           },
           body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to save like');
+          const errorText = await response.text();
+          throw new Error(`API error: ${errorText}`);
         }
 
         const data = await response.json();
         console.log('✅ Like saved:', data);
-
         liked.value[type] = true;
       } catch (error) {
         console.error('❌ Error saving like:', error);
