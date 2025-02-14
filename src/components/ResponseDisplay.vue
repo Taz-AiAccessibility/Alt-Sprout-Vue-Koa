@@ -131,15 +131,12 @@ export default defineComponent({
       }
 
       try {
-        // ✅ Fetch session token
+        // Fetch session token
         const { data: sessionData, error: sessionError } =
           await supabase.auth.getSession();
         if (sessionError || !sessionData?.session?.access_token) {
           throw new Error('User session not found or expired');
         }
-
-        console.log('🚀 Sending Like Request', { type, userId: props.userId });
-        console.log('🔑 Token:', sessionData.session.access_token);
 
         const payload = {
           descriptionType: type,
@@ -147,14 +144,14 @@ export default defineComponent({
           descriptionOrigin: props.responseText.description_origin,
           subjects: props.responseText.subjects,
           targetAudience: props.responseText.targetAudience,
-          userId: props.userId, // ✅ Explicitly send userId
+          userId: props.userId,
         };
 
         const response = await fetch('http://localhost:3000/like-description', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${sessionData.session.access_token}`, // ✅ Attach JWT
+            Authorization: `Bearer ${sessionData.session.access_token}`,
           },
           body: JSON.stringify(payload),
         });

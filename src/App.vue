@@ -83,17 +83,13 @@
 </template>
 
 <script lang="ts">
-import { ref, reactive, watch, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import ImageInput from './components/ImageInput.vue';
 import SubjectInput from './components/SubjectInput.vue';
 import TargetAudienceInput from './components/TargetAudienceInput.vue';
 import ResponseDisplay from './components/ResponseDisplay.vue';
 import gitHubIcon from './assets/github-icon.svg';
 import { supabase } from './utils/supabase';
-const { data } = await supabase.auth.getSession();
-
-console.log('SUPABASE SESSION:', data.session?.access_token);
-(window as any).supabase = supabase;
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 const FRONTEND_URL =
@@ -124,19 +120,10 @@ export default {
       previewImage: '',
     });
 
-    // watch(
-    //   () => formData.imageUrl,
-    //   (newUrl, oldUrl) => {
-    //     if (newUrl !== oldUrl) {
-    //       altTextResult.value = null;
-    //     }
-    //   }
-    // );
     const setUser = async () => {
       const { data, error } = await supabase.auth.getUser();
 
       if (error) {
-        console.error('❌ Error fetching user:', error);
         return;
       }
 
@@ -146,25 +133,20 @@ export default {
           name: data.user.user_metadata?.full_name || 'Anonymous',
           avatar_url: data.user.user_metadata?.avatar_url || '',
         };
-        console.log('✅ User data updated:', user.value);
       }
     };
 
-    // ✅ Run only ONCE
+    // Run only ONCE
     onMounted(async () => {
       supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log(`🔄 Auth state changed: ${event}`);
-
         if (session) {
-          console.log('✅ New session:', session);
           setUser();
         } else {
-          console.log('🚪 User signed out');
           user.value = {};
         }
       });
 
-      // ✅ Directly check session from Supabase
+      // Directly check session from Supabase
       await setUser();
     });
 
@@ -175,8 +157,6 @@ export default {
           redirectTo: FRONTEND_URL,
         },
       });
-
-      console.log('loginWithGoogle data:', data);
 
       if (error) {
         console.error('OAuth Error:', error.message);
@@ -192,13 +172,13 @@ export default {
       }
     };
 
-    // ✅ Secure API Request Handling
+    // Secure API Request Handling
     const handleSubmit = async () => {
       isLoading.value = true;
       errorMessage.value = null;
 
       try {
-        // ✅ Ensure session is refreshed before making request
+        // Ensure session is refreshed before making request
         const { data: sessionData, error: sessionError } =
           await supabase.auth.getSession();
 
@@ -206,16 +186,11 @@ export default {
           throw new Error('User session not found or expired');
         }
 
-        console.log(
-          '🚀 Sending API request with token:',
-          sessionData.session.access_token
-        );
-
         const response = await fetch(`${BACKEND_URL}/alt-text`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${sessionData.session.access_token}`, // ✅ Correct Authorization header
+            Authorization: `Bearer ${sessionData.session.access_token}`,
           },
           body: JSON.stringify({
             userUrl: formData.imageUrl,
@@ -233,7 +208,6 @@ export default {
         altTextResult.value = data;
         showForm.value = false;
       } catch (error: any) {
-        console.error('❌ Error submitting form:', error);
         errorMessage.value = error.message || 'Something went wrong';
       } finally {
         isLoading.value = false;
