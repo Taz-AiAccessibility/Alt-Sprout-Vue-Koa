@@ -221,45 +221,66 @@ export default defineComponent({
 .image-input {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   align-items: center;
   width: 100%;
+  max-width: 400px; /* Ensures component stays within a reasonable width */
+  margin: 0 auto;
 }
 
+/* Style inputs properly for mobile */
 input[type='text'],
 input[type='file'] {
-  width: 90%;
-  max-width: 400px;
+  width: 100%; /* Ensures input does not overflow */
   padding: 10px;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 5px;
+  box-sizing: border-box;
 }
 
 /* Toggle Between File Upload & URL */
 #toggle-input {
   display: flex;
   align-items: center;
-  gap: 6px;
   justify-content: center;
+  width: 100%;
 }
 
 .toggle-label {
   font-size: 1rem;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   cursor: pointer;
 }
 
+/* Preview Container */
 .preview-container {
   margin-top: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .preview-image {
-  max-width: 80%;
+  max-width: 100%; /* Ensures image fits within parent */
   height: auto;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  object-fit: contain;
+}
+
+/* 🔹 Media Queries for Larger Screens */
+@media (min-width: 768px) {
+  .image-input {
+    max-width: 500px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .image-input {
+    max-width: 600px;
+  }
 }
 </style>
