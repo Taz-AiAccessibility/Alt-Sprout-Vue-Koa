@@ -124,6 +124,8 @@
         alt="GitHub Icon"
       />
     </a>
+    <a href="https://altsprout.dance/terms-of-service">Terms of Service</a> |
+    <a href="https://altsprout.dance/privacy-policy">Privacy Policy</a>
   </footer>
 </template>
 
