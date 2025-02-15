@@ -9,27 +9,34 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue';
+import { defineComponent, ref, watch, onMounted } from 'vue';
 
 export default defineComponent({
   name: 'TargetAudienceInput',
   props: {
     modelValue: {
       type: String,
-      required: false,
+      required: true,
     },
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     const localAudience = ref(props.modelValue || 'Ballet Lovers');
 
+    // ✅ Emit default value on component mount
+    onMounted(() => {
+      emit('update:modelValue', localAudience.value);
+    });
+
+    // ✅ Watch for prop changes and update if necessary
     watch(
       () => props.modelValue,
       (newValue) => {
         if (newValue !== localAudience.value) {
           localAudience.value = newValue || 'Ballet Lovers';
         }
-      }
+      },
+      { immediate: true } // ✅ Ensures update happens on first render
     );
 
     const updateAudience = () => {
