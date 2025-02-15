@@ -1,6 +1,9 @@
 import Koa, { Context, Next } from 'koa';
 import Router from '@koa/router';
+import path from 'path';
+import fs from 'fs';
 import cors from '@koa/cors';
+import serve from 'koa-static';
 import { isAuthenticated } from './auth';
 import { parseUserQuery } from './controllers/userQueryController';
 import { openAiImageProcessing } from './controllers/imageProcessingController';
@@ -30,13 +33,16 @@ app.use(
 );
 app.use(bodyparser()); // ✅ Middleware to parse request bodies
 
+// ✅ Serve static files (including privacy-policy.html)
+app.use(serve(path.join(__dirname, 'public')));
+
 // ✅ Middleware to Verify JWT Instead of Cookies
 app.use(
   jwt({
     secret: process.env.SUPABASE_JWT_SECRET!,
     algorithms: ['HS256'],
   }).unless({
-    path: [/^\/auth\/google/, /^\/public/], // Public routes
+    path: [/^\/auth\/google/, /^\/public/, /^\/privacy-policy/], // Public routes
   })
 );
 
@@ -52,6 +58,20 @@ router.post(
     console.log('✅ Context Body:', ctx.body);
   }
 );
+
+// ✅ Route to Serve Privacy Policy
+router.get('/privacy-policy', async (ctx) => {
+  const filePath = path.join(__dirname, 'public/privacy-policy.html');
+
+  if (!fs.existsSync(filePath)) {
+    ctx.status = 404;
+    ctx.body = 'Privacy policy not found.';
+    return;
+  }
+
+  ctx.type = 'html';
+  ctx.body = fs.createReadStream(filePath);
+});
 
 // ✅ Register API Routes
 router

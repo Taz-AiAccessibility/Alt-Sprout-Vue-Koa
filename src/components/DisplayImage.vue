@@ -33,7 +33,7 @@ export default defineComponent({
   margin-top: 20px;
 }
 img {
-  max-width: 300px;
+  max-width: 100%;
   height: auto;
   border: 1px solid #ddd;
   margin-bottom: 10px;

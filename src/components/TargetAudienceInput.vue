@@ -66,7 +66,7 @@ select {
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 6px;
-  background: #f9f9f9;
+  background: #333;
   cursor: pointer;
   transition: border 0.2s ease-in-out;
 }
