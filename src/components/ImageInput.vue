@@ -221,66 +221,62 @@ export default defineComponent({
 .image-input {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  margin: 0 20px;
   align-items: center;
-  width: 100%;
-  max-width: 400px; /* Ensures component stays within a reasonable width */
-  margin: 0 auto;
 }
 
-/* Style inputs properly for mobile */
 input[type='text'],
 input[type='file'] {
-  width: 100%; /* Ensures input does not overflow */
-  padding: 10px;
+  width: 80%;
+  padding: 8px;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 5px;
-  box-sizing: border-box;
 }
 
-/* Toggle Between File Upload & URL */
 #toggle-input {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
+  gap: 6px;
+  justify-content: flex-start;
 }
 
 .toggle-label {
-  font-size: 1rem;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   cursor: pointer;
 }
 
-/* Preview Container */
+.toggle-label input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 .preview-container {
-  margin-top: 10px;
-  width: 100%;
+  width: 100%; /* ✅ Ensures it takes full width */
   display: flex;
   justify-content: center;
+  align-items: center;
+  padding: 10px; /* ✅ Adds space around the image */
 }
 
 .preview-image {
-  max-width: 100%; /* Ensures image fits within parent */
-  height: auto;
+  width: 100%; /* ✅ Ensures it scales correctly */
+  max-width: 350px; /* ✅ Prevents it from getting too large */
+  height: auto; /* ✅ Maintains aspect ratio */
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   object-fit: contain;
 }
 
-/* 🔹 Media Queries for Larger Screens */
+/* ✅ Improve layout on larger screens */
 @media (min-width: 768px) {
-  .image-input {
+  .preview-image {
     max-width: 500px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .image-input {
-    max-width: 600px;
   }
 }
 </style>

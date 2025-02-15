@@ -20,29 +20,46 @@
     <transition name="fade" mode="out-in">
       <section v-if="!user.name" key="welcome" class="welcome-message">
         <h2>Welcome to Alt Sprout Dance!</h2>
-        <p>An OpenAI generative tool that makes alt text dance!</p>
-        <h3>How It Works:</h3>
-        <ul>
-          <li>Login with your Google account.</li>
-          <li>Upload a dance image.</li>
-          <li>Input subjects in the image and select a target audience.</li>
-          <li>Submit to generate alt text.</li>
-        </ul>
-        <h3>Output:</h3>
-        <p>
-          A simple and a more intricate response to copy and use as alt text for
-          the image.
+
+        <p class="intro">
+          Alt Sprout Dance is an AI-powered alt text generator designed to
+          create meaningful and accessible image descriptions. Developed in
+          collaboration with
+          <a href="https://www.smuinballet.org/">Smuin Contemporary Ballet</a>,
+          it enhances the quality and efficiency of content creation for
+          visually rich platforms.
         </p>
-        <p>
-          Click the checkmark ✅ next to a response if you especially like it!
-          This will help improve the model through better fine-tuning.
-        </p>
-        <p>
-          <strong
-            >This product is currently being used by Smuin Contemporary
-            Ballet.</strong
-          >
-        </p>
+
+        <article class="info-box">
+          <h3>How It Works</h3>
+          <ul>
+            <li><strong>1.</strong> Log in with your Google account</li>
+            <li><strong>2.</strong> Upload a dance image</li>
+            <li>
+              <strong>3.</strong> Provide subject details & target audience
+            </li>
+            <li><strong>4.</strong> Submit to generate alt text</li>
+          </ul>
+        </article>
+
+        <article class="info-box">
+          <h3>Why It Matters</h3>
+          <p>
+            High-quality alt text ensures accessibility, inclusivity, and better
+            engagement across digital spaces. By leveraging AI, Alt Sprout Dance
+            streamlines the alt text creation process, making it faster and more
+            effective.
+          </p>
+        </article>
+
+        <article class="info-box highlight">
+          <h3>Enhance the Model</h3>
+          <p>
+            Click the ✅ checkmark next to a response you find particularly
+            helpful. Your selections contribute to refining and improving future
+            alt text generation.
+          </p>
+        </article>
       </section>
 
       <!-- Main application logic, shown after login -->
@@ -332,15 +349,22 @@ main {
 
 /* Form Styling */
 form {
-  width: 90%;
+  width: 100%;
   max-width: 500px;
   margin: auto;
 }
 
 fieldset {
+  width: 100%; /* ✅ Ensures fieldset stays within the form */
+  max-width: 100%; /* ✅ Prevents it from expanding too far */
   border: 1px solid #c3d9ed;
   padding: 12px;
   border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box; /* ✅ Ensures padding doesn't break layout */
+  margin: 0 auto; /* ✅ Keeps it centered inside the form */
 }
 
 /* Buttons */
@@ -410,6 +434,71 @@ footer {
 
   form {
     width: 60%;
+  }
+}
+
+.welcome-message {
+  text-align: center;
+  max-width: 90%;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+}
+
+.welcome-message h2 {
+  font-size: 1.8rem;
+  color: #222;
+  margin-bottom: 12px;
+}
+
+.welcome-message .intro {
+  font-size: 1rem;
+  color: #444;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.welcome-message .info-box {
+  background: #f5f5ff;
+  border-left: 5px solid #646cff;
+  padding: 12px 16px;
+  margin: 15px 0;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.welcome-message .info-box h3 {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.welcome-message .info-box ul {
+  list-style: none;
+  padding: 0;
+}
+
+.welcome-message .info-box ul li {
+  font-size: 1rem;
+  color: #555;
+  padding: 5px 0;
+}
+
+.welcome-message .info-box strong {
+  color: #646cff;
+}
+
+.welcome-message .highlight {
+  background: #ebebff;
+  border-left-color: #535bf2;
+}
+
+/* 🔹 Responsive Styling */
+@media (min-width: 768px) {
+  .welcome-message {
+    max-width: 600px;
   }
 }
 </style>
