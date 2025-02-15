@@ -222,37 +222,33 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: 0 20px;
   align-items: center;
+  width: 100%;
 }
 
 input[type='text'],
 input[type='file'] {
-  width: 80%;
-  padding: 8px;
+  width: 90%;
+  max-width: 400px;
+  padding: 10px;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 5px;
 }
 
+/* Toggle Between File Upload & URL */
 #toggle-input {
   display: flex;
   align-items: center;
   gap: 6px;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .toggle-label {
-  font-size: 0.8rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   gap: 4px;
-  cursor: pointer;
-}
-
-.toggle-label input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
   cursor: pointer;
 }
 

@@ -278,107 +278,138 @@ export default {
 </script>
 
 <style>
-/* header */
+/* 🔹 Base Styles for Mobile */
 header#main-header {
+  width: 100%;
+  padding: 12px 20px;
+  background-color: #c3d9ed;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 h1 {
-  font-size: small;
+  font-size: 1.4rem;
+  margin-bottom: 8px;
 }
 
-header#main-header {
-  padding: 0 10px;
-  background-color: gray;
-}
-
-/* login & user */
-header .auth-container {
-  width: 100%;
+#auth-container {
   display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-section.user-info {
+.user-info {
   display: flex;
   align-items: center;
   justify-content: right;
 }
 
 .avatar {
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
 }
 
-/* main */
-main {
-  flex-grow: 1;
-  max-width: 1280px;
-  margin: 10px auto;
-}
-
-/* Welcome message styles */
 .welcome-message {
   text-align: center;
-  max-width: 600px;
-  margin: 30px auto;
+  max-width: 90%;
   padding: 20px;
+  background: #ffffff;
   border-radius: 10px;
-  /* ! causing line shadow */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  animation: fadeIn 1s ease-in-out;
+  margin: 20px auto;
 }
 
-/* transition elements -> input, output, loading, errors */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.button-container {
-  margin-top: 10px;
+main {
+  width: 100%;
+  padding: 15px;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Form Styling */
+form {
+  width: 90%;
+  max-width: 500px;
+  margin: auto;
+}
+
+fieldset {
+  border: 1px solid #c3d9ed;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+/* Buttons */
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
 }
 
 button {
-  padding: 8px 16px;
-  border: none;
-  background-color: #3498db;
-  color: white;
+  padding: 10px 15px;
   border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 200px;
 }
 
-button:hover {
-  background-color: #2980b9;
-}
-
-/* footer */
+/* Footer */
 footer {
-  height: 60px;
-  background-color: #1b2730;
+  width: 100%;
+  background-color: #c3d9ed;
   text-align: center;
-  line-height: 60px; /* Center text vertically */
+  padding: 15px 0;
 }
 
 #gitHubAnchor {
   display: flex;
-  gap: 10px;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 #gitHubIcon {
-  height: 30px;
   width: 30px;
+  height: 30px;
+}
+
+/* 🔹 Responsive Adjustments */
+@media (min-width: 768px) {
+  header#main-header {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+
+  form {
+    width: 80%;
+  }
+
+  .button-container {
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .welcome-message {
+    max-width: 600px;
+  }
+
+  form {
+    width: 60%;
+  }
 }
 </style>
