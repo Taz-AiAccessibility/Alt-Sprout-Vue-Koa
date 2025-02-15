@@ -161,8 +161,6 @@ export default defineComponent({
           throw new Error(`API error: ${errorText}`);
         }
 
-        const data = await response.json();
-        console.log('✅ Like saved:', data);
         liked.value[type] = true;
       } catch (error) {
         console.error('❌ Error saving like:', error);

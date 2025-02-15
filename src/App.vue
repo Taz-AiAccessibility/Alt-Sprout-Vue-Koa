@@ -16,9 +16,37 @@
     </article>
   </header>
   <main id="main-container">
-    <section v-if="user.name">
-      <transition name="fade">
-        <!-- :key updates on resetFrom to override KeepAlive to force a re-render -->
+    <!-- Transition between welcome message and form -->
+    <transition name="fade" mode="out-in">
+      <section v-if="!user.name" key="welcome" class="welcome-message">
+        <h2>Welcome to Alt Sprout Dance!</h2>
+        <p>An OpenAI generative tool that makes alt text dance!</p>
+        <h3>How It Works:</h3>
+        <ul>
+          <li>Login with your Google account.</li>
+          <li>Upload a dance image.</li>
+          <li>Input subjects in the image and select a target audience.</li>
+          <li>Submit to generate alt text.</li>
+        </ul>
+        <h3>Output:</h3>
+        <p>
+          A simple and a more intricate response to copy and use as alt text for
+          the image.
+        </p>
+        <p>
+          Click the checkmark ✅ next to a response if you especially like it!
+          This will help improve the model through better fine-tuning.
+        </p>
+        <p>
+          <strong
+            >This product is currently being used by Smuin Contemporary
+            Ballet.</strong
+          >
+        </p>
+      </section>
+
+      <!-- Main application logic, shown after login -->
+      <section v-else key="form">
         <KeepAlive>
           <form v-show="showForm" :key="formKey" @submit.prevent="handleSubmit">
             <fieldset>
@@ -30,38 +58,38 @@
             </fieldset>
           </form>
         </KeepAlive>
-      </transition>
 
-      <transition name="fade">
-        <p v-if="!altTextResult && isLoading">Generating alt text...</p>
-      </transition>
+        <transition name="fade">
+          <p v-if="!altTextResult && isLoading">Generating alt text...</p>
+        </transition>
 
-      <transition name="fade">
-        <p v-if="!altTextResult && errorMessage" class="error">
-          {{ errorMessage }}
-        </p>
-      </transition>
+        <transition name="fade">
+          <p v-if="!altTextResult && errorMessage" class="error">
+            {{ errorMessage }}
+          </p>
+        </transition>
 
-      <transition name="fade">
-        <ResponseDisplay
-          v-if="altTextResult && user.id && !showForm"
-          responseType="Alt Text Result"
-          :responseText="altTextResult"
-          :user-id="user.id || ''"
-        />
-      </transition>
+        <transition name="fade">
+          <ResponseDisplay
+            v-if="altTextResult && user.id && !showForm"
+            responseType="Alt Text Result"
+            :responseText="altTextResult"
+            :user-id="user.id || ''"
+          />
+        </transition>
 
-      <!-- Toggle Button -->
-      <div class="button-container">
-        <button v-if="!showForm && altTextResult" @click="toggleForm">
-          Edit Input
-        </button>
-        <button v-if="showForm && altTextResult" @click="toggleForm">
-          View Results
-        </button>
-        <button @click="resetForm">Reset</button>
-      </div>
-    </section>
+        <!-- Toggle Button -->
+        <div class="button-container">
+          <button v-if="!showForm && altTextResult" @click="toggleForm">
+            Edit Input
+          </button>
+          <button v-if="showForm && altTextResult" @click="toggleForm">
+            View Results
+          </button>
+          <button @click="resetForm">Reset</button>
+        </div>
+      </section>
+    </transition>
   </main>
   <footer>
     <a
@@ -288,6 +316,18 @@ main {
   flex-grow: 1;
   max-width: 1280px;
   margin: 10px auto;
+}
+
+/* Welcome message styles */
+.welcome-message {
+  text-align: center;
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 20px;
+  border-radius: 10px;
+  /* ! causing line shadow */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 1s ease-in-out;
 }
 
 /* transition elements -> input, output, loading, errors */
