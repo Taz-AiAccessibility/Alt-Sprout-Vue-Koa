@@ -113,7 +113,6 @@ export default defineComponent({
           tooltip.value[type] = null;
         }, 2000);
       } catch (error) {
-        console.error('Failed to copy:', error);
         tooltip.value[type] = 'Failed to copy!';
       }
     };
@@ -126,7 +125,6 @@ export default defineComponent({
 
     const toggleLike = async (type: 'simple' | 'complex') => {
       if (!props.userId) {
-        console.error('❌ User not logged in. Missing userId.');
         return;
       }
 
@@ -163,7 +161,7 @@ export default defineComponent({
 
         liked.value[type] = true;
       } catch (error) {
-        console.error('❌ Error saving like:', error);
+        throw error;
       }
     };
 

@@ -11,11 +11,14 @@ import { isAuthenticated } from './auth';
 import { parseUserQuery } from './controllers/userQueryController';
 import { openAiImageProcessing } from './controllers/imageProcessingController';
 import { queryOpenAI } from './controllers/openAiAltTextController';
+import {
+  handleGoogleOAuthLogin,
+  handleGoogleOAuthCallback,
+} from './controllers/googleOAuthController';
 
 const app = new Koa();
 const router = new Router();
 
-// ✅ Ensure Required Environment Variables Exist
 if (!process.env.SUPABASE_JWT_SECRET) {
   throw new Error('❌ Missing SUPABASE_JWT_SECRET. Server cannot start.');
 }
@@ -23,7 +26,7 @@ if (!process.env.SUPABASE_JWT_SECRET) {
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const PORT = process.env.PORT || 3000;
 
-// ✅ CORS Setup
+// CORS Setup
 app.use(
   cors({
     origin: FRONTEND_URL,
@@ -32,22 +35,25 @@ app.use(
     exposeHeaders: ['Authorization'],
   })
 );
-app.use(bodyparser()); // ✅ Middleware to parse request bodies
-
-// ✅ Serve static files
+app.use(bodyparser());
 app.use(serve(path.join(__dirname, 'public')));
 
-// ✅ Middleware to Verify JWT
+// Middleware to Verify JWT
 app.use(
   jwt({
     secret: process.env.SUPABASE_JWT_SECRET!,
     algorithms: ['HS256'],
   }).unless({
-    path: [/^\/privacy-policy/, /^\/terms-of-service/], // Keep public access limited
+    path: [
+      /^\/auth\/google/,
+      /^\/auth\/google\/callback/,
+      /^\/privacy-policy/,
+      /^\/terms-of-service/,
+    ],
   })
 );
 
-// ✅ Process Alt Text Request
+// Process Alt Text Request
 router.post(
   '/alt-text',
   isAuthenticated,
@@ -60,37 +66,15 @@ router.post(
   }
 );
 
-// ✅ Serve Privacy Policy
-router.get('/privacy-policy', async (ctx) => {
-  const filePath = path.join(__dirname, 'public/privacy-policy.html');
-  if (!fs.existsSync(filePath)) {
-    ctx.status = 404;
-    ctx.body = 'Privacy policy not found.';
-    return;
-  }
-  ctx.type = 'html';
-  ctx.body = fs.createReadStream(filePath);
-});
-
-// ✅ Serve Terms of Service
-router.get('/terms-of-service', async (ctx) => {
-  const filePath = path.join(__dirname, 'public/terms-of-service.html');
-  if (!fs.existsSync(filePath)) {
-    ctx.status = 404;
-    ctx.body = 'Terms of Service not found.';
-    return;
-  }
-  ctx.type = 'html';
-  ctx.body = fs.createReadStream(filePath);
-});
-
-// ✅ Register API Routes
+// OAuth Routes
+router.get('/auth/google', handleGoogleOAuthLogin);
+router.get('/auth/google/callback', handleGoogleOAuthCallback);
 router
   .use(likedDescriptionRoutes.routes())
   .use(likedDescriptionRoutes.allowedMethods());
+
 app.use(router.routes()).use(router.allowedMethods());
 
-// ✅ Start Server
 app.listen(PORT, () =>
   console.log(`🚀 Server running on http://localhost:${PORT}`)
 );

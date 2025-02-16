@@ -7,8 +7,6 @@
       </nav>
       <section v-else class="user-info">
         <img v-if="user.avatar_url" :src="user.avatar_url" class="avatar" />
-        <!-- :alt="`Profile picture of ${user.name}`" -->
-
         <nav>
           <button @click="logout">Logout</button>
         </nav>
@@ -16,11 +14,9 @@
     </article>
   </header>
   <main id="main-container">
-    <!-- Transition between welcome message and form -->
     <transition name="fade" mode="out-in">
       <section v-if="!user.name" key="welcome" class="welcome-message">
         <h2>Welcome to Alt Sprout Dance!</h2>
-
         <p class="intro">
           Alt Sprout Dance is an AI-powered alt text generator designed to
           create meaningful and accessible image descriptions. Developed in
@@ -29,7 +25,6 @@
           it enhances the quality and efficiency of content creation for
           visually rich platforms.
         </p>
-
         <article class="info-box">
           <h3>How It Works</h3>
           <ul>
@@ -41,7 +36,6 @@
             <li><strong>4.</strong> Submit to generate alt text</li>
           </ul>
         </article>
-
         <article class="info-box">
           <h3>Why It Matters</h3>
           <p>
@@ -51,7 +45,6 @@
             effective.
           </p>
         </article>
-
         <article class="info-box highlight">
           <h3>Enhance the Model</h3>
           <p>
@@ -62,7 +55,6 @@
         </article>
       </section>
 
-      <!-- Main application logic, shown after login -->
       <section v-else key="form">
         <KeepAlive>
           <form v-show="showForm" :key="formKey" @submit.prevent="handleSubmit">
@@ -95,7 +87,6 @@
           />
         </transition>
 
-        <!-- Toggle Button -->
         <div class="button-container">
           <button v-if="!showForm && altTextResult" @click="toggleForm">
             Edit Input
@@ -116,13 +107,8 @@
       rel="noopener noreferrer"
       aria-label="Checkout the A11y Sprout on GitHub"
     >
-      <span className="icon-text">Checkout Alt Sprout on GitHub</span>
-      <img
-        aria-hidden="true"
-        id="gitHubIcon"
-        :src="gitHubIcon"
-        alt="GitHub Icon"
-      />
+      <span class="icon-text">Checkout Alt Sprout on GitHub</span>
+      <img id="gitHubIcon" :src="gitHubIcon" alt="GitHub Icon" />
     </a>
     <a :href="`${BACKEND_URL}/terms-of-service`">Terms of Service</a> |
     <a :href="`${BACKEND_URL}/privacy-policy`">Privacy Policy</a>
@@ -131,6 +117,12 @@
 
 <script lang="ts">
 import { ref, reactive, onMounted } from 'vue';
+import {
+  loginWithGoogle,
+  logoutUser,
+  checkSupabaseSession,
+  handleOAuthRedirect,
+} from './auth';
 import ImageInput from './components/ImageInput.vue';
 import SubjectInput from './components/SubjectInput.vue';
 import TargetAudienceInput from './components/TargetAudienceInput.vue';
@@ -139,8 +131,6 @@ import gitHubIcon from './assets/github-icon.svg';
 import { supabase } from './utils/supabase';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-const FRONTEND_URL =
-  import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
 
 export default {
   name: 'App',
@@ -151,73 +141,23 @@ export default {
     ResponseDisplay,
   },
   setup() {
-    // might need to expand on user properties
     const user = ref<{ name?: string; avatar_url?: string; id?: string }>({});
-    const isLoading = ref<boolean>(false);
+    const isLoading = ref(false);
     const errorMessage = ref<string | null>(null);
-    const altTextResult = ref<any>(null);
-    const showForm = ref<boolean>(true); // Toggle form visibility
-    const formKey = ref(0); // :key updates on resetFrom to override KeepAlive to force a re-render
+    const altTextResult = ref(null);
+    const showForm = ref(true);
+    const formKey = ref(0);
 
     const formData = reactive({
       imageUrl: '',
       subjects: '',
       targetAudience: '',
-      description_origin: '',
-      previewImage: '',
     });
 
-    const setUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-
-      if (error) {
-        return;
-      }
-
-      if (data.user) {
-        user.value = {
-          id: data.user.id,
-          name: data.user.user_metadata?.full_name || 'Anonymous',
-          avatar_url: data.user.user_metadata?.avatar_url || '',
-        };
-      }
-    };
-
-    // Run only ONCE
     onMounted(async () => {
-      supabase.auth.onAuthStateChange(async (_, session) => {
-        if (session) {
-          setUser();
-        } else {
-          user.value = {};
-        }
-      });
-
-      // Directly check session from Supabase
-      await setUser();
+      await handleOAuthRedirect(); // ✅ Handles OAuth redirect
+      await checkSupabaseSession(user);
     });
-
-    const loginWithGoogle = async () => {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: FRONTEND_URL,
-        },
-      });
-
-      if (error) {
-        console.error('OAuth Error:', error.message);
-      }
-    };
-
-    const logout = async () => {
-      try {
-        await supabase.auth.signOut();
-        user.value = {};
-      } catch (error) {
-        console.error('❌ Logout failed:', error);
-      }
-    };
 
     // Secure API Request Handling
     const handleSubmit = async () => {
@@ -237,7 +177,7 @@ export default {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${sessionData.session.access_token}`,
+            Authorization: `Bearer ${sessionData.session.access_token}`, // ✅ Correct Authorization header
           },
           body: JSON.stringify({
             userUrl: formData.imageUrl,
@@ -261,17 +201,16 @@ export default {
       }
     };
 
-    // Toggle form visibility
     const toggleForm = () => {
       showForm.value = !showForm.value;
     };
 
-    // Reset everything
     const resetForm = () => {
-      formData.imageUrl = '';
-      formData.subjects = '';
-      formData.targetAudience = '';
-      formData.previewImage = '';
+      Object.assign(formData, {
+        imageUrl: '',
+        subjects: '',
+        targetAudience: '',
+      });
       altTextResult.value = null;
       showForm.value = true;
       formKey.value++;
@@ -285,7 +224,7 @@ export default {
       errorMessage,
       altTextResult,
       loginWithGoogle,
-      logout,
+      logout: logoutUser,
       toggleForm,
       resetForm,
       showForm,
