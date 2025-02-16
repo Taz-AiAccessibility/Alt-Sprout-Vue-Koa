@@ -20,8 +20,6 @@ console.log(FRONTEND_URL); // Check if it's correctly loaded -->
       </nav>
       <section v-else class="user-info">
         <img v-if="user.avatar_url" :src="user.avatar_url" class="avatar" />
-        <!-- :alt="`Profile picture of ${user.name}`" -->
-
         <nav>
           <button @click="logout">Logout</button>
         </nav>
@@ -29,9 +27,48 @@ console.log(FRONTEND_URL); // Check if it's correctly loaded -->
     </article>
   </header>
   <main id="main-container">
-    <section v-if="user.name">
-      <transition name="fade">
-        <!-- :key updates on resetFrom to override KeepAlive to force a re-render -->
+    <transition name="fade" mode="out-in">
+      <section v-if="!user.name" key="welcome" class="welcome-message">
+        <h2>Welcome to Alt Sprout Dance!</h2>
+        <p class="intro">
+          Alt Sprout Dance is an AI-powered alt text generator designed to
+          create meaningful and accessible image descriptions. Developed in
+          collaboration with
+          <a href="https://www.smuinballet.org/">Smuin Contemporary Ballet</a>,
+          it enhances the quality and efficiency of content creation for
+          visually rich platforms.
+        </p>
+        <article class="info-box">
+          <h3>How It Works</h3>
+          <ul>
+            <li><strong>1.</strong> Log in with your Google account</li>
+            <li><strong>2.</strong> Upload a dance image</li>
+            <li>
+              <strong>3.</strong> Provide subject details & target audience
+            </li>
+            <li><strong>4.</strong> Submit to generate alt text</li>
+          </ul>
+        </article>
+        <article class="info-box">
+          <h3>Why It Matters</h3>
+          <p>
+            High-quality alt text ensures accessibility, inclusivity, and better
+            engagement across digital spaces. By leveraging AI, Alt Sprout Dance
+            streamlines the alt text creation process, making it faster and more
+            effective.
+          </p>
+        </article>
+        <article class="info-box highlight">
+          <h3>Enhance the Model</h3>
+          <p>
+            Click the ✅ checkmark next to a response you find particularly
+            helpful. Your selections contribute to refining and improving future
+            alt text generation.
+          </p>
+        </article>
+      </section>
+
+      <section v-else key="form">
         <KeepAlive>
           <form v-show="showForm" :key="formKey" @submit.prevent="handleSubmit">
             <fieldset>
@@ -43,38 +80,37 @@ console.log(FRONTEND_URL); // Check if it's correctly loaded -->
             </fieldset>
           </form>
         </KeepAlive>
-      </transition>
 
-      <transition name="fade">
-        <p v-if="!altTextResult && isLoading">Generating alt text...</p>
-      </transition>
+        <transition name="fade">
+          <p v-if="!altTextResult && isLoading">Generating alt text...</p>
+        </transition>
 
-      <transition name="fade">
-        <p v-if="!altTextResult && errorMessage" class="error">
-          {{ errorMessage }}
-        </p>
-      </transition>
+        <transition name="fade">
+          <p v-if="!altTextResult && errorMessage" class="error">
+            {{ errorMessage }}
+          </p>
+        </transition>
 
-      <transition name="fade">
-        <ResponseDisplay
-          v-if="altTextResult && user.id && !showForm"
-          responseType="Alt Text Result"
-          :responseText="altTextResult"
-          :user-id="user.id || ''"
-        />
-      </transition>
+        <transition name="fade">
+          <ResponseDisplay
+            v-if="altTextResult && user.id && !showForm"
+            responseType="Alt Text Result"
+            :responseText="altTextResult"
+            :user-id="user.id || ''"
+          />
+        </transition>
 
-      <!-- Toggle Button -->
-      <div class="button-container">
-        <button v-if="!showForm && altTextResult" @click="toggleForm">
-          Edit Input
-        </button>
-        <button v-if="showForm && altTextResult" @click="toggleForm">
-          View Results
-        </button>
-        <button @click="resetForm">Reset</button>
-      </div>
-    </section>
+        <div class="button-container">
+          <button v-if="!showForm && altTextResult" @click="toggleForm">
+            Edit Input
+          </button>
+          <button v-if="showForm && altTextResult" @click="toggleForm">
+            View Results
+          </button>
+          <button @click="resetForm">Reset</button>
+        </div>
+      </section>
+    </transition>
   </main>
   <footer>
     <a
@@ -84,24 +120,30 @@ console.log(FRONTEND_URL); // Check if it's correctly loaded -->
       rel="noopener noreferrer"
       aria-label="Checkout the A11y Sprout on GitHub"
     >
-      <span className="icon-text">Checkout Alt Sprout on GitHub</span>
-      <img
-        aria-hidden="true"
-        id="gitHubIcon"
-        :src="gitHubIcon"
-        alt="GitHub Icon"
-      />
+      <span class="icon-text">Checkout Alt Sprout on GitHub</span>
+      <img id="gitHubIcon" :src="gitHubIcon" alt="GitHub Icon" />
     </a>
+    <a :href="`${BACKEND_URL}/terms-of-service`">Terms of Service</a> |
+    <a :href="`${BACKEND_URL}/privacy-policy`">Privacy Policy</a>
   </footer>
 </template>
 
 <script lang="ts">
-import { ref, reactive, watch, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
+import {
+  loginWithGoogle,
+  logoutUser,
+  checkSupabaseSession,
+  handleOAuthRedirect,
+} from './auth';
 import ImageInput from './components/ImageInput.vue';
 import SubjectInput from './components/SubjectInput.vue';
 import TargetAudienceInput from './components/TargetAudienceInput.vue';
 import ResponseDisplay from './components/ResponseDisplay.vue';
 import gitHubIcon from './assets/github-icon.svg';
+import { supabase } from './utils/supabase';
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 export default {
   name: 'App',
@@ -112,96 +154,44 @@ export default {
     ResponseDisplay,
   },
   setup() {
-    // might need to expand on user properties
-    const BACKEND_URL =
-      import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-
     const user = ref<{ name?: string; avatar_url?: string; id?: string }>({});
-    const isLoading = ref<boolean>(false);
+    const isLoading = ref(false);
     const errorMessage = ref<string | null>(null);
-    const altTextResult = ref<any>(null);
-    const showForm = ref<boolean>(true); // Toggle form visibility
-    const formKey = ref(0); // :key updates on resetFrom to override KeepAlive to force a re-render
+    const altTextResult = ref(null);
+    const showForm = ref(true);
+    const formKey = ref(0);
 
     const formData = reactive({
       imageUrl: '',
       subjects: '',
       targetAudience: '',
-      description_origin: '',
-      previewImage: '',
     });
 
-    // watch(
-    //   () => formData.imageUrl,
-    //   (newUrl, oldUrl) => {
-    //     if (newUrl !== oldUrl) {
-    //       altTextResult.value = null;
-    //     }
-    //   }
-    // );
-
-    watch(user, (newUser) => {
-      console.log('👤 User data updated:', newUser);
+    onMounted(async () => {
+      await handleOAuthRedirect(); // ✅ Handles OAuth redirect
+      await checkSupabaseSession(user);
     });
 
-    const fetchUserSession = async () => {
-      try {
-        const response = await fetch(`${BACKEND_URL}/user-session`, {
-          credentials: 'include', // Ensures cookies are sent with the request
-        });
-
-        console.log('RESPONSE:', response);
-
-        const data = await response.json();
-
-        if (data.user) {
-          user.value = {
-            name: data.user.name,
-            avatar_url: data.user.avatar_url,
-            id: data.user.id,
-          };
-
-          console.log('✅ User session fetched:', user.value);
-        } else {
-          console.warn('⚠️ No user session found.');
-          user.value = {};
-        }
-      } catch (error) {
-        console.error('❌ Error fetching user session:', error);
-      }
-    };
-
-    onMounted(fetchUserSession);
-
-    // Redirect to Google OAuth Login
-    const loginWithGoogle = () => {
-      window.location.href = `${BACKEND_URL}/auth/google`;
-    };
-
-    const logout = async () => {
-      try {
-        await fetch(`${BACKEND_URL}/logout`, {
-          method: 'GET',
-          credentials: 'include', // Ensures cookies are included
-        });
-
-        user.value = {}; // Clears user state
-        window.location.href = '/'; // Redirect to home page
-      } catch (error) {
-        console.error('❌ Logout failed:', error);
-      }
-    };
-
-    // Form submission handler
+    // Secure API Request Handling
     const handleSubmit = async () => {
       isLoading.value = true;
       errorMessage.value = null;
 
       try {
+        // Ensure session is refreshed before making request
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
+
+        if (sessionError || !sessionData?.session?.access_token) {
+          throw new Error('User session not found or expired');
+        }
+
         const response = await fetch(`${BACKEND_URL}/alt-text`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.session.access_token}`, // ✅ Correct Authorization header
+          },
           body: JSON.stringify({
             userUrl: formData.imageUrl,
             imageContext: formData.subjects,
@@ -209,30 +199,31 @@ export default {
           }),
         });
 
-        if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`API error: ${response.statusText} - ${errorText}`);
+        }
 
         const data = await response.json();
         altTextResult.value = data;
         showForm.value = false;
       } catch (error: any) {
-        console.error('Error submitting form:', error);
         errorMessage.value = error.message || 'Something went wrong';
       } finally {
         isLoading.value = false;
       }
     };
 
-    // Toggle form visibility
     const toggleForm = () => {
       showForm.value = !showForm.value;
     };
 
-    // Reset everything
     const resetForm = () => {
-      formData.imageUrl = '';
-      formData.subjects = '';
-      formData.targetAudience = '';
-      formData.previewImage = '';
+      Object.assign(formData, {
+        imageUrl: '',
+        subjects: '',
+        targetAudience: '',
+      });
       altTextResult.value = null;
       showForm.value = true;
       formKey.value++;
@@ -246,107 +237,223 @@ export default {
       errorMessage,
       altTextResult,
       loginWithGoogle,
-      logout,
+      logout: logoutUser,
       toggleForm,
       resetForm,
       showForm,
       formKey,
       gitHubIcon,
+      BACKEND_URL,
     };
   },
 };
 </script>
 
 <style>
-/* header */
+/* 🔹 Base Styles for Mobile */
 header#main-header {
+  width: 100%;
+  padding: 12px 20px;
+  background-color: #c3d9ed;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 h1 {
-  font-size: small;
+  font-size: 1.4rem;
+  margin-bottom: 8px;
 }
 
-header#main-header {
-  padding: 0 10px;
-  background-color: gray;
-}
-
-/* login & user */
-header .auth-container {
-  width: 100%;
+#auth-container {
   display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-section.user-info {
+.user-info {
   display: flex;
   align-items: center;
   justify-content: right;
 }
 
 .avatar {
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
 }
 
-/* main */
+.welcome-message {
+  text-align: center;
+  max-width: 90%;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+}
+
 main {
-  flex-grow: 1;
-  max-width: 1280px;
-  margin: 10px auto;
-}
-
-/* transition elements -> input, output, loading, errors */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.button-container {
-  margin-top: 10px;
+  width: 100%;
+  padding: 15px;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Form Styling */
+form {
+  width: 100%;
+  max-width: 500px;
+  margin: auto;
+}
+
+fieldset {
+  width: 100%; /* ✅ Ensures fieldset stays within the form */
+  max-width: 100%; /* ✅ Prevents it from expanding too far */
+  border: 1px solid #c3d9ed;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box; /* ✅ Ensures padding doesn't break layout */
+  margin: 0 auto; /* ✅ Keeps it centered inside the form */
+}
+
+/* Buttons */
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
 }
 
 button {
-  padding: 8px 16px;
-  border: none;
-  background-color: #3498db;
-  color: white;
+  padding: 10px 15px;
   border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 200px;
 }
 
-button:hover {
-  background-color: #2980b9;
-}
-
-/* footer */
+/* Footer */
 footer {
-  height: 60px;
-  background-color: #1b2730;
+  width: 100%;
+  background-color: #c3d9ed;
   text-align: center;
-  line-height: 60px; /* Center text vertically */
+  padding: 15px 0;
 }
 
 #gitHubAnchor {
   display: flex;
-  gap: 10px;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 #gitHubIcon {
-  height: 30px;
   width: 30px;
+  height: 30px;
+}
+
+/* 🔹 Responsive Adjustments */
+@media (min-width: 768px) {
+  header#main-header {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+
+  form {
+    width: 80%;
+  }
+
+  .button-container {
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .welcome-message {
+    max-width: 600px;
+  }
+
+  form {
+    width: 60%;
+  }
+}
+
+.welcome-message {
+  text-align: center;
+  max-width: 90%;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+}
+
+.welcome-message h2 {
+  font-size: 1.8rem;
+  color: #222;
+  margin-bottom: 12px;
+}
+
+.welcome-message .intro {
+  font-size: 1rem;
+  color: #444;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.welcome-message .info-box {
+  background: #f5f5ff;
+  border-left: 5px solid #646cff;
+  padding: 12px 16px;
+  margin: 15px 0;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.welcome-message .info-box h3 {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.welcome-message .info-box ul {
+  list-style: none;
+  padding: 0;
+}
+
+.welcome-message .info-box ul li {
+  font-size: 1rem;
+  color: #555;
+  padding: 5px 0;
+}
+
+.welcome-message .info-box strong {
+  color: #646cff;
+}
+
+.welcome-message .highlight {
+  background: #ebebff;
+  border-left-color: #535bf2;
+}
+
+/* 🔹 Responsive Styling */
+@media (min-width: 768px) {
+  .welcome-message {
+    max-width: 600px;
+  }
 }
 </style>

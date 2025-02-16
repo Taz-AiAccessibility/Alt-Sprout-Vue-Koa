@@ -59,6 +59,8 @@
 
 <script lang="ts">
 import { defineComponent, ref, type PropType } from 'vue';
+import { supabase } from '../utils/supabase';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 export default defineComponent({
   name: 'ResponseDisplay',
@@ -113,7 +115,6 @@ export default defineComponent({
           tooltip.value[type] = null;
         }, 2000);
       } catch (error) {
-        console.error('Failed to copy:', error);
         tooltip.value[type] = 'Failed to copy!';
       }
     };
@@ -126,39 +127,43 @@ export default defineComponent({
 
     const toggleLike = async (type: 'simple' | 'complex') => {
       if (!props.userId) {
-        console.error('❌ User not logged in. Missing userId.');
         return;
       }
 
-      const payload = {
-        descriptionType: type,
-        descriptionText: props.responseText[type],
-        descriptionOrigin: props.responseText.description_origin,
-        subjects: props.responseText.subjects,
-        targetAudience: props.responseText.targetAudience,
-      };
-
       try {
+        // Fetch session token
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
+        if (sessionError || !sessionData?.session?.access_token) {
+          throw new Error('User session not found or expired');
+        }
+
+        const payload = {
+          descriptionType: type,
+          descriptionText: props.responseText[type],
+          descriptionOrigin: props.responseText.description_origin,
+          subjects: props.responseText.subjects,
+          targetAudience: props.responseText.targetAudience,
+          userId: props.userId,
+        };
+
         const response = await fetch(`${BACKEND_URL}/like-description`, {
           method: 'POST',
-          credentials: 'include', // 🔥 Ensures cookies are sent
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.session.access_token}`,
           },
           body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to save like');
+          const errorText = await response.text();
+          throw new Error(`API error: ${errorText}`);
         }
-
-        const data = await response.json();
-        console.log('✅ Like saved:', data);
 
         liked.value[type] = true;
       } catch (error) {
-        console.error('❌ Error saving like:', error);
+        throw error;
       }
     };
 
@@ -176,25 +181,20 @@ export default defineComponent({
 
 <style scoped>
 .response-display {
-  padding: 12px;
+  padding: 15px;
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: 8px;
   background-color: #f9f9f9;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   text-align: center;
   max-width: 600px;
   margin: 20px auto;
 }
 
+/* Headings */
 h2 {
   color: #007bff;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   margin-bottom: 10px;
-}
-
-.alt-text-section {
-  margin-top: 15px;
-  position: relative;
 }
 
 h3 {
@@ -211,16 +211,12 @@ p {
 
 /* Copy Button */
 button {
-  margin-top: 8px;
-  padding: 6px 12px;
-  font-size: 0.9rem;
-  border: none;
-  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border-radius: 5px;
   background-color: #007bff;
   color: white;
   cursor: pointer;
-  transition: background 0.3s;
-  position: relative;
 }
 
 button:hover {
@@ -238,7 +234,6 @@ button:hover {
   padding: 5px 10px;
   font-size: 0.8rem;
   border-radius: 4px;
-  white-space: nowrap;
   opacity: 0.9;
 }
 
