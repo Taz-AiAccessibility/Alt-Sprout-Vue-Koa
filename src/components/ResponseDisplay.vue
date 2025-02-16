@@ -85,6 +85,8 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const BACKEND_URL =
+      import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
     const copied = ref<{ simple: boolean; complex: boolean }>({
       simple: false,
       complex: false,

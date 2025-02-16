@@ -1,3 +1,16 @@
+<!-- Define it Globally (config.ts)
+Instead of repeating this in multiple components, you can create a config.ts file:
+
+
+export const FRONTEND_URL =
+  import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
+Then, import it where needed:
+
+
+import { FRONTEND_URL } from '@/config';
+
+console.log(FRONTEND_URL); // Check if it's correctly loaded -->
+
 <template>
   <header id="main-header">
     <h1>Alt Sprout Dance</h1>
