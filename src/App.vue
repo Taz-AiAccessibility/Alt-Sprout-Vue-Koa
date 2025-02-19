@@ -115,7 +115,7 @@
 </template>
 
 <script lang="ts">
-import { ref, reactive, watch, nextTick, onMounted } from 'vue';
+import { ref, reactive, nextTick, onMounted } from 'vue';
 import {
   loginWithGoogle,
   logoutUser,

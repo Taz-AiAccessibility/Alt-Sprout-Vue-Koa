@@ -15,7 +15,7 @@ export async function handleOAuthRedirect(user: any) {
 
   try {
     // Set session manually
-    const { data, error } = await supabase.auth.setSession(
+    const { error } = await supabase.auth.setSession(
       {
         access_token: accessToken,
         refresh_token: refreshToken,
