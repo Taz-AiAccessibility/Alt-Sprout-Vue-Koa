@@ -26,6 +26,10 @@ if (!process.env.SUPABASE_JWT_SECRET) {
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const PORT = process.env.PORT || 3000;
 
+// Set various security headers
+app.use(helmet());
+
+// Set CSP with frame-ancestors
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -36,10 +40,16 @@ app.use(
       connectSrc: ["'self'"],
       fontSrc: ["'self'", 'https:', 'data:'],
       objectSrc: ["'none'"],
+      frameAncestors: ["'none'"], // Prevents your site from being framed
+      // Optionally, if you need to allow framing from specific origins, list them here.
+      // e.g., frameAncestors: ["'self'", "https://trusted.com"],
       upgradeInsecureRequests: [],
     },
   })
 );
+
+// Over kill, and may conflict with frameAncestors if we want to used specified iframe approval
+app.use(helmet.frameguard({ action: 'deny' }));
 
 // CORS Setup
 app.use(
