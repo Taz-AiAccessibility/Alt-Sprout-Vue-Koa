@@ -64,7 +64,6 @@ export default defineComponent({
 label {
   font-weight: 600;
   font-size: 1rem;
-  color: #333;
 }
 
 select {
@@ -73,7 +72,7 @@ select {
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 6px;
-  background: #333;
+  background: var(--bg-color);
   cursor: pointer;
   transition: border 0.2s ease-in-out;
 }

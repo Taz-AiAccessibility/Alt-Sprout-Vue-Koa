@@ -1,18 +1,6 @@
-<!-- Define it Globally (config.ts)
-Instead of repeating this in multiple components, you can create a config.ts file:
-
-
-export const FRONTEND_URL =
-  import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
-Then, import it where needed:
-
-
-import { FRONTEND_URL } from '@/config';
-
-console.log(FRONTEND_URL); // Check if it's correctly loaded -->
-
 <template>
   <header id="main-header">
+    <img :src="logo" id="logo" alt="" aria-hidden="true" />
     <h1>Alt Sprout Dance</h1>
     <article id="auth-container">
       <nav v-if="!user.name" aria-label="Authentication">
@@ -38,34 +26,33 @@ console.log(FRONTEND_URL); // Check if it's correctly loaded -->
           it enhances the quality and efficiency of content creation for
           visually rich platforms.
         </p>
-        <article class="info-box">
-          <h3>How It Works</h3>
-          <ul>
-            <li><strong>1.</strong> Log in with your Google account</li>
-            <li><strong>2.</strong> Upload a dance image</li>
-            <li>
-              <strong>3.</strong> Provide subject details & target audience
-            </li>
-            <li><strong>4.</strong> Submit to generate alt text</li>
-          </ul>
-        </article>
-        <article class="info-box">
-          <h3>Why It Matters</h3>
-          <p>
-            High-quality alt text ensures accessibility, inclusivity, and better
-            engagement across digital spaces. By leveraging AI, Alt Sprout Dance
-            streamlines the alt text creation process, making it faster and more
-            effective.
-          </p>
-        </article>
-        <article class="info-box highlight">
-          <h3>Enhance the Model</h3>
-          <p>
-            Click the ✅ checkmark next to a response you find particularly
-            helpful. Your selections contribute to refining and improving future
-            alt text generation.
-          </p>
-        </article>
+        <h2>Get Started</h2>
+        <p>Start making that alt text dance!</p>
+        <nav v-if="!user.name" aria-label="Authentication">
+          <button @click="loginWithGoogle">Login with Google</button>
+        </nav>
+        <section id="info">
+          <article class="info-box">
+            <h3>How It Works</h3>
+            <ul>
+              <li><strong>1.</strong> Log in with your Google account</li>
+              <li><strong>2.</strong> Upload a dance image</li>
+              <li>
+                <strong>3.</strong> Provide subject details & target audience
+              </li>
+              <li><strong>4.</strong> Submit to generate alt text</li>
+            </ul>
+          </article>
+          <article class="info-box">
+            <h3>Why It Matters</h3>
+            <p>
+              High-quality alt text ensures accessibility, inclusivity, and
+              better engagement across digital spaces. By leveraging AI, Alt
+              Sprout Dance streamlines the alt text creation process, making it
+              faster and more effective.
+            </p>
+          </article>
+        </section>
       </section>
 
       <section v-else key="form">
@@ -76,14 +63,13 @@ console.log(FRONTEND_URL); // Check if it's correctly loaded -->
               <ImageInput v-model="formData.imageUrl" />
               <SubjectInput v-model="formData.subjects" />
               <TargetAudienceInput v-model="formData.targetAudience" />
-              <button type="submit">Submit</button>
+              <div class="submit-container">
+                <button type="submit" :disabled="isLoading">Submit</button>
+                <span v-if="isLoading" class="loader"></span>
+              </div>
             </fieldset>
           </form>
         </KeepAlive>
-
-        <transition name="fade">
-          <p v-if="!altTextResult && isLoading">Generating alt text...</p>
-        </transition>
 
         <transition name="fade">
           <p v-if="!altTextResult && errorMessage" class="error">
@@ -129,7 +115,7 @@ console.log(FRONTEND_URL); // Check if it's correctly loaded -->
 </template>
 
 <script lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, watch, nextTick, onMounted } from 'vue';
 import {
   loginWithGoogle,
   logoutUser,
@@ -141,6 +127,7 @@ import SubjectInput from './components/SubjectInput.vue';
 import TargetAudienceInput from './components/TargetAudienceInput.vue';
 import ResponseDisplay from './components/ResponseDisplay.vue';
 import gitHubIcon from './assets/github-icon.svg';
+import logo from './assets/alt_sprout_dance_icon.png';
 import { supabase } from './utils/supabase';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
@@ -167,14 +154,24 @@ export default {
       targetAudience: '',
     });
 
+    watch(user, (newUser) => {
+      console.log('🔄 User state changed:', newUser);
+    });
+
     onMounted(async () => {
-      await handleOAuthRedirect(); // ✅ Handles OAuth redirect
+      console.log('🔍 Checking OAuth Redirect...');
+      await handleOAuthRedirect(user);
+
+      console.log('🔍 Checking Supabase Session...');
       await checkSupabaseSession(user);
+
+      console.log('🛠️ User state after session check:', user.value);
     });
 
     // Secure API Request Handling
     const handleSubmit = async () => {
       isLoading.value = true;
+      await nextTick();
       errorMessage.value = null;
 
       try {
@@ -243,6 +240,7 @@ export default {
       showForm,
       formKey,
       gitHubIcon,
+      logo,
       BACKEND_URL,
     };
   },
@@ -254,16 +252,22 @@ export default {
 header#main-header {
   width: 100%;
   padding: 12px 20px;
-  background-color: #c3d9ed;
+  background-color: var(--bg-color);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   text-align: center;
+  box-shadow: 0px 4px 2px 0px #00000040;
 }
 
 h1 {
   font-size: 1.4rem;
   margin-bottom: 8px;
+}
+
+h2 {
+  margin-top: 20px;
 }
 
 #auth-container {
@@ -284,35 +288,44 @@ h1 {
   border-radius: 50%;
 }
 
-.welcome-message {
-  text-align: center;
-  max-width: 90%;
-  padding: 20px;
-  background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  margin: 20px auto;
+#logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
 }
 
 main {
   width: 100%;
-  padding: 15px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Form Styling */
+/* Form Container */
 form {
   width: 100%;
-  max-width: 500px;
-  margin: auto;
+  margin: 20px auto;
+  padding: 1.2rem;
+  background: var(--bg-color);
+  border-radius: 8px;
+}
+
+/* ✅ Form Inputs */
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
 fieldset {
   width: 100%; /* ✅ Ensures fieldset stays within the form */
   max-width: 100%; /* ✅ Prevents it from expanding too far */
-  border: 1px solid #c3d9ed;
+  border: 2px solid #c3d9ed;
   padding: 12px;
   border-radius: 8px;
   display: flex;
@@ -320,6 +333,42 @@ fieldset {
   gap: 10px;
   box-sizing: border-box; /* ✅ Ensures padding doesn't break layout */
   margin: 0 auto; /* ✅ Keeps it centered inside the form */
+}
+
+.submit-container {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between button & loader */
+}
+
+.loader {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #fff;
+  border-top: 3px solid #646cff; /* Primary color */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+/* Spinning animation */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Optional: Add a spinning effect */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Buttons */
@@ -358,48 +407,11 @@ footer {
   height: 30px;
 }
 
-/* 🔹 Responsive Adjustments */
-@media (min-width: 768px) {
-  header#main-header {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-
-  h1 {
-    font-size: 1.6rem;
-  }
-
-  form {
-    width: 80%;
-  }
-
-  .button-container {
-    flex-direction: row;
-  }
-}
-
-@media (min-width: 1024px) {
-  h1 {
-    font-size: 1.8rem;
-  }
-
-  .welcome-message {
-    max-width: 600px;
-  }
-
-  form {
-    width: 60%;
-  }
-}
-
 .welcome-message {
   text-align: center;
-  max-width: 90%;
   padding: 20px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin: 20px auto;
+  width: 100%;
 }
 
 .welcome-message h2 {
@@ -416,18 +428,10 @@ footer {
 }
 
 .welcome-message .info-box {
-  background: #f5f5ff;
-  border-left: 5px solid #646cff;
-  padding: 12px 16px;
-  margin: 15px 0;
-  border-radius: 8px;
+  background: var(--bg-color);
   text-align: left;
-}
-
-.welcome-message .info-box h3 {
-  font-size: 1.2rem;
-  margin-bottom: 8px;
-  color: #333;
+  width: 100%;
+  padding: 40px;
 }
 
 .welcome-message .info-box ul {
@@ -441,19 +445,58 @@ footer {
   padding: 5px 0;
 }
 
-.welcome-message .info-box strong {
-  color: #646cff;
-}
-
 .welcome-message .highlight {
   background: #ebebff;
   border-left-color: #535bf2;
 }
 
+/* Footer styling */
+footer {
+  background-color: #c3d9ed;
+  text-align: center;
+  padding: 15px;
+  width: 100%;
+}
+
+/* 🔹 Responsive Adjustments */
+@media (min-width: 768px) {
+  header#main-header {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .welcome-message {
+    width: 80%;
+  }
+
+  .welcome-message .info-box {
+    width: 50%;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+
+  #info {
+    display: flex;
+  }
+
+  form {
+    width: 80%;
+  }
+
+  .button-container {
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 1.8rem;
+  }
+}
+
 /* 🔹 Responsive Styling */
 @media (min-width: 768px) {
-  .welcome-message {
-    max-width: 600px;
-  }
 }
 </style>
