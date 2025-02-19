@@ -1,6 +1,7 @@
 import Koa, { Context } from 'koa';
 import Router from '@koa/router';
 import path from 'path';
+import helmet from 'koa-helmet';
 import cors from '@koa/cors';
 import serve from 'koa-static';
 import jwt from 'koa-jwt';
@@ -24,6 +25,21 @@ if (!process.env.SUPABASE_JWT_SECRET) {
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const PORT = process.env.PORT || 3000;
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://apis.google.com'],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", 'https:', 'data:'],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  })
+);
 
 // CORS Setup
 app.use(
