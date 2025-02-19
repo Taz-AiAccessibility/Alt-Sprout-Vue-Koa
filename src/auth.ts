@@ -8,15 +8,13 @@ export async function handleOAuthRedirect(user: any) {
   const accessToken = url.hash.match(/access_token=([^&]+)/)?.[1];
   const refreshToken = url.hash.match(/refresh_token=([^&]+)/)?.[1];
 
-  console.log('🔍 OAuth Redirect:', { accessToken, refreshToken });
-
   if (!accessToken || !refreshToken) {
     console.warn('⚠️ No OAuth tokens found in URL.');
     return;
   }
 
   try {
-    // ✅ Set session manually
+    // Set session manually
     const { data, error } = await supabase.auth.setSession(
       {
         access_token: accessToken,
@@ -26,27 +24,27 @@ export async function handleOAuthRedirect(user: any) {
     );
 
     if (error) {
-      console.error('❌ Error setting session:', error);
+      console.error('❌ Error setting session: auth.ts');
       return;
     }
 
-    console.log('✅ Supabase session set:', data);
+    console.log('✅ Supabase session set');
 
-    // ✅ Verify session immediately
+    // Verify session immediately
     const { data: sessionData, error: sessionError } =
       await supabase.auth.getSession();
 
     if (sessionError || !sessionData?.session) {
-      console.error('❌ Session not found after setting:', sessionError);
+      console.error('❌ Session not found after setting: auth.ts');
       return;
     }
 
-    console.log('✅ Verified session:', sessionData);
+    console.log('✅ Verified session: auth.ts');
 
-    // ✅ Fetch user details after ensuring session exists
+    // Fetch user details after ensuring session exists
     await checkSupabaseSession(user);
 
-    // ✅ Remove tokens from the URL after storing them
+    // Remove tokens from the URL after storing them
     window.history.replaceState({}, document.title, window.location.pathname);
   } catch (err) {
     console.error('❌ Error in OAuth redirect handling:', err);
@@ -65,26 +63,26 @@ export const checkSupabaseSession = async (user: any) => {
     return;
   }
 
-  console.log('✅ Session found:', sessionData);
+  console.log('✅ Session found');
 
-  // ✅ Fetch user details separately
+  // Fetch user details separately
   const { data: userData, error: userError } = await supabase.auth.getUser();
 
   if (userError || !userData?.user) {
-    console.error('❌ Failed to fetch user:', userError);
+    console.error('❌ Failed to fetch user');
     return;
   }
 
-  console.log('✅ User data fetched:', userData.user);
+  console.log('✅ User data fetched');
 
-  // ✅ Update Vue's reactive `user` state
+  // Update Vue's reactive `user` state
   user.value = {
     id: userData.user.id,
     name: userData.user.user_metadata?.full_name || 'Anonymous',
     avatar_url: userData.user.user_metadata?.avatar_url || '',
   };
 
-  console.log('✅ User state updated:', user.value);
+  console.log('✅ User state updated');
 };
 
 // Login function

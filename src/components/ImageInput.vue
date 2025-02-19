@@ -82,7 +82,7 @@ export default defineComponent({
       emit('update:modelValue', imageUrl.value);
     };
 
-    // ✅ Resize Image Before Upload
+    // Resize Image Before Upload
     const resizeImage = async (
       file: File,
       maxWidth = 800,
@@ -132,7 +132,7 @@ export default defineComponent({
       });
     };
 
-    // ✅ Upload Image to Supabase Storage
+    // Upload Image to Supabase Storage
     const uploadImage = async (file: File): Promise<string | null> => {
       try {
         if (!userId.value) {
@@ -175,25 +175,25 @@ export default defineComponent({
       }
     };
 
-    // ✅ Handle File Upload
+    // Handle File Upload
     const handleFileUpload = async (event: Event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      // ✅ Create a local preview URL (remains visible)
+      // Create a local preview URL (remains visible)
       previewImage.value = URL.createObjectURL(file);
 
-      // ✅ Resize the image before upload
+      // Resize the image before upload
       const resizedFile = await resizeImage(file);
 
-      // ✅ Upload the resized image to Supabase
+      // Upload the resized image to Supabase
       const uploadedImageUrl = await uploadImage(resizedFile);
 
       if (uploadedImageUrl) {
-        // ✅ Store the Supabase URL ONLY for API submission
+        // Store the Supabase URL ONLY for API submission
         imageUrl.value = uploadedImageUrl;
 
-        // ✅ Emit the update to parent (`App.vue`)
+        // Emit the update to parent (`App.vue`)
         emit('update:modelValue', uploadedImageUrl);
       }
     };
@@ -272,23 +272,23 @@ input[type='file']::file-selector-button:hover {
 }
 
 .preview-container {
-  width: 100%; /* ✅ Ensures it takes full width */
+  width: 100%; /* Ensures it takes full width */
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px; /* ✅ Adds space around the image */
+  padding: 10px; /* Adds space around the image */
 }
 
 .preview-image {
-  width: 100%; /* ✅ Ensures it scales correctly */
-  max-width: 350px; /* ✅ Prevents it from getting too large */
-  height: auto; /* ✅ Maintains aspect ratio */
+  width: 100%; /* Ensures it scales correctly */
+  max-width: 350px; /* Prevents it from getting too large */
+  height: auto; /*  Maintains aspect ratio */
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   object-fit: contain;
 }
 
-/* ✅ Improve layout on larger screens */
+/* Improve layout on larger screens */
 @media (min-width: 768px) {
   .preview-image {
     max-width: 500px;

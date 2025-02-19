@@ -18,13 +18,13 @@ export const saveLikedDescription = async (ctx: Context) => {
     const token = ctx.headers.authorization?.split(' ')[1];
 
     if (!user || !user.id || !token) {
-      console.error('❌ User session missing:', user);
+      console.error('❌ User session missing: likedDescriptionController');
       ctx.status = 401;
       ctx.body = { error: 'Unauthorized: User session not found' };
       return;
     }
 
-    console.log('✅ Authenticated user:', user.id);
+    console.log('✅ Authenticated user');
 
     const body = ctx.request.body as Partial<LikedDescriptionRequest>;
     if (
@@ -40,10 +40,7 @@ export const saveLikedDescription = async (ctx: Context) => {
       return;
     }
 
-    console.log('📝 Preparing to insert into Supabase:', {
-      user_id: user.id,
-      ...body,
-    });
+    console.log('📝 Preparing to insert into Supabase');
 
     // ✅ Use Supabase with the user's token
     const supabaseClient = getSupabaseClient(token);

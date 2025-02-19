@@ -37,7 +37,7 @@ export async function handleGoogleOAuthLogin(ctx: Context) {
   googleAuthUrl.searchParams.append('access_type', 'offline');
   googleAuthUrl.searchParams.append('prompt', 'consent');
 
-  console.log('🔗 Redirecting user to:', googleAuthUrl.toString());
+  console.log('🔗 Redirecting user');
   ctx.redirect(googleAuthUrl.toString());
 }
 
@@ -107,7 +107,7 @@ export async function handleGoogleOAuthCallback(ctx: Context) {
     const redirectUrl = new URL(`${FRONTEND_URL}/`);
     redirectUrl.hash = `access_token=${authData.session.access_token}&refresh_token=${authData.session.refresh_token}`;
 
-    console.log('🔗 Redirecting user to frontend:', redirectUrl.toString());
+    console.log('🔗 Redirecting user to frontend');
     ctx.redirect(redirectUrl.toString());
   } catch (error) {
     console.error('❌ Google OAuth process failed:', error);

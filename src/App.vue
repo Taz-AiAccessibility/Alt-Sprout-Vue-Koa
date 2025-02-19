@@ -160,8 +160,6 @@ export default {
 
       console.log('🔍 Checking Supabase Session...');
       await checkSupabaseSession(user);
-
-      console.log('🛠️ User state after session check:', user.value);
     });
 
     // Secure API Request Handling
@@ -183,7 +181,7 @@ export default {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${sessionData.session.access_token}`, // ✅ Correct Authorization header
+            Authorization: `Bearer ${sessionData.session.access_token}`,
           },
           body: JSON.stringify({
             userUrl: formData.imageUrl,
@@ -244,7 +242,7 @@ export default {
 </script>
 
 <style>
-/* 🔹 Base Styles for Mobile */
+/*  Base Styles for Mobile */
 header#main-header {
   width: 100%;
   padding: 12px 20px;
@@ -306,7 +304,7 @@ form {
   border-radius: 8px;
 }
 
-/* ✅ Form Inputs */
+/* Form Inputs */
 input,
 select,
 textarea {
@@ -319,16 +317,16 @@ textarea {
 }
 
 fieldset {
-  width: 100%; /* ✅ Ensures fieldset stays within the form */
-  max-width: 100%; /* ✅ Prevents it from expanding too far */
+  width: 100%; /*  Ensures fieldset stays within the form */
+  max-width: 100%; /* Prevents it from expanding too far */
   border: 2px solid #c3d9ed;
   padding: 12px;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  box-sizing: border-box; /* ✅ Ensures padding doesn't break layout */
-  margin: 0 auto; /* ✅ Keeps it centered inside the form */
+  box-sizing: border-box; /* Ensures padding doesn't break layout */
+  margin: 0 auto; /* Keeps it centered inside the form */
 }
 
 .submit-container {
@@ -454,7 +452,7 @@ footer {
   width: 100%;
 }
 
-/* 🔹 Responsive Adjustments */
+/* Responsive Adjustments */
 @media (min-width: 768px) {
   header#main-header {
     flex-direction: row;
@@ -492,7 +490,7 @@ footer {
   }
 }
 
-/* 🔹 Responsive Styling */
+/* Responsive Styling */
 @media (min-width: 768px) {
 }
 </style>

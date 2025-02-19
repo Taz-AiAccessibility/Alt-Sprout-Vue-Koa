@@ -23,12 +23,12 @@ export default defineComponent({
   setup(props, { emit }) {
     const localAudience = ref(props.modelValue || 'Ballet Lovers');
 
-    // ✅ Emit default value on component mount
+    // Emit default value on component mount
     onMounted(() => {
       emit('update:modelValue', localAudience.value);
     });
 
-    // ✅ Watch for prop changes and update if necessary
+    // Watch for prop changes and update if necessary
     watch(
       () => props.modelValue,
       (newValue) => {
@@ -36,7 +36,7 @@ export default defineComponent({
           localAudience.value = newValue || 'Ballet Lovers';
         }
       },
-      { immediate: true } // ✅ Ensures update happens on first render
+      { immediate: true } // Ensures update happens on first render
     );
 
     const updateAudience = () => {

@@ -194,7 +194,7 @@ export default defineComponent({
 h3 {
   text-align: left;
 }
-/* ✅ Like icon styling */
+/* Like icon styling */
 .like-svg {
   width: 20px; /* Adjust size as needed */
   height: 20px;
@@ -202,7 +202,7 @@ h3 {
   transition: opacity 0.4s ease-out, transform 0.3s ease-in-out;
 }
 
-/* ✅ Fade Out Effect on Click */
+/* Fade Out Effect on Click */
 .heart-icon.completed .like-svg {
   opacity: 0;
   transform: scale(0.7);
@@ -255,7 +255,7 @@ p {
 }
 
 /* Copy Button */
-/* ✅ Ensure the tooltip is positioned relative to the button */
+/* Ensure the tooltip is positioned relative to the button */
 button {
   position: relative; /* Ensure tooltip aligns with button */
   display: flex;
@@ -269,7 +269,7 @@ button {
   cursor: pointer;
 }
 
-/* ✅ Tooltip - now properly positioned */
+/* Tooltip - now properly positioned */
 .tooltip {
   position: absolute;
   bottom: 120%; /* Pushes tooltip above the button */
@@ -286,7 +286,7 @@ button {
   white-space: nowrap;
 }
 
-/* ✅ Show tooltip on hover */
+/* Show tooltip on hover */
 button:hover .tooltip {
   opacity: 0.9;
   visibility: visible;
