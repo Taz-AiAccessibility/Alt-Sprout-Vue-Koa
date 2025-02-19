@@ -13,9 +13,6 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
   process.exit(1);
 }
 
-// ✅ Public Supabase Client (For anonymous access)
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 // ✅ Secure Supabase Client (For admin authentication)
 export const supabaseAdmin = createClient(
   SUPABASE_URL,
@@ -28,6 +25,7 @@ export const supabaseAdmin = createClient(
 // ✅ Helper to get user-authenticated Supabase client
 export const getSupabaseClient = (token?: string) => {
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true }, // ✅ Ensure session persistence
     global: { headers: { Authorization: token ? `Bearer ${token}` : '' } },
   });
 };
@@ -36,18 +34,17 @@ export const getSupabaseClient = (token?: string) => {
 (async () => {
   console.log('🔍 Checking Supabase connection...');
 
-  try {
-    const { error } = await supabaseAdmin
-      .from('users')
-      .select('id') // ✅ Fetch only user ID to avoid exposing data
-      .limit(1);
+  const { data, error } = await supabaseAdmin.auth.admin.listUsers();
 
-    if (error) {
-      console.error('❌ Supabase Connection Error');
-    } else {
-      console.log('✅ Supabase Connected Successfully');
-    }
-  } catch (err) {
-    console.error('❌ Unexpected Supabase Connection Error');
+  if (error) {
+    console.error('❌ Supabase Connection Error:', error);
+  } else if (data.users.length === 0) {
+    console.warn('⚠️ No users exist in Supabase Auth yet.');
+  } else {
+    console.log(
+      '✅ Supabase Connected Successfully:',
+      data.users.length,
+      'users found.'
+    );
   }
 })();

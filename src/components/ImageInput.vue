@@ -2,13 +2,15 @@
   <section class="image-input">
     <!-- File Upload -->
     <div class="input" v-if="!useUrl">
-      <label for="image-upload">Upload an Image:</label>
-      <input
-        id="image-upload"
-        type="file"
-        accept="image/*"
-        @change="handleFileUpload"
-      />
+      <label for="image-upload">
+        <input
+          id="image-upload"
+          type="file"
+          accept="image/*"
+          @change="handleFileUpload"
+          class="custom-file-input"
+        />
+      </label>
     </div>
 
     <!-- Image URL Input -->
@@ -36,7 +38,7 @@
       <img :src="previewImage" alt="Uploaded Preview" class="preview-image" />
     </article>
 
-    <p v-if="uploading">Uploading...</p>
+    <!-- <p v-if="uploading">Uploading...</p> -->
   </section>
 </template>
 
@@ -228,11 +230,24 @@ export default defineComponent({
 
 input[type='text'],
 input[type='file'] {
-  width: 80%;
+  width: 100%;
   padding: 8px;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+input[type='file']::file-selector-button {
+  color: var(--text-color-button);
+  padding: 0.3em 0.5em;
+  border: none;
+  border-radius: 0.2em;
+  background-color: var(--bg-button);
+  transition: 1s;
+}
+
+input[type='file']::file-selector-button:hover {
+  background-color: var(--bg-button-hover);
 }
 
 #toggle-input {

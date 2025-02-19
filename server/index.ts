@@ -1,7 +1,6 @@
 import Koa, { Context } from 'koa';
 import Router from '@koa/router';
 import path from 'path';
-import fs from 'fs';
 import cors from '@koa/cors';
 import serve from 'koa-static';
 import jwt from 'koa-jwt';
@@ -35,7 +34,10 @@ app.use(
     exposeHeaders: ['Authorization'],
   })
 );
+
 app.use(bodyparser());
+
+// Handle static privacy-policy and terms-of-service pages
 app.use(serve(path.join(__dirname, 'public')));
 
 // Middleware to Verify JWT
