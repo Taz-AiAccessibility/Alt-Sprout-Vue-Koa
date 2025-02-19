@@ -154,10 +154,6 @@ export default {
       targetAudience: '',
     });
 
-    watch(user, (newUser) => {
-      console.log('🔄 User state changed:', newUser);
-    });
-
     onMounted(async () => {
       console.log('🔍 Checking OAuth Redirect...');
       await handleOAuthRedirect(user);

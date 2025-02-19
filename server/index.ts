@@ -59,7 +59,7 @@ app.use(
 router.post(
   '/alt-text',
   isAuthenticated,
-  isAuthenticated,
+  // isAuthenticated,
   parseUserQuery,
   openAiImageProcessing,
   queryOpenAI,

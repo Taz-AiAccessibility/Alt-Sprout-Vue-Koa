@@ -71,7 +71,6 @@
 import { defineComponent, ref, type PropType } from 'vue';
 import { supabase } from '../utils/supabase';
 import like_icon from '../assets/like_icon.svg';
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 export default defineComponent({
   name: 'ResponseDisplay',
