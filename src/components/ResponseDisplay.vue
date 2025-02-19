@@ -14,8 +14,8 @@
           <span class="tooltip" v-if="tooltip.simple">{{
             tooltip.simple
           }}</span>
-          <span v-if="copied.simple">✅</span>
-          <span v-else>📋 Copy</span>
+          <span v-if="copied.simple">Copied</span>
+          <span v-else>Copy Text</span>
         </button>
         <!-- !!!!!! add :disabled=liked.simple -->
         <span
@@ -23,8 +23,13 @@
           :class="{ liked: liked.simple, completed: liked.simple }"
           @click="!liked.simple && toggleLike('simple')"
         >
-          <span v-if="!liked.simple">✅</span>
-          <span v-else>❤️</span>
+          <img
+            v-if="!liked.simple"
+            :src="like_icon"
+            alt="Like icon"
+            class="like-svg"
+          />
+          <span v-else class="heart">❤️</span>
         </span>
       </div>
     </div>
@@ -41,16 +46,21 @@
           <span class="tooltip" v-if="tooltip.complex">{{
             tooltip.complex
           }}</span>
-          <span v-if="copied.complex">✅</span>
-          <span v-else>📋 Copy</span>
+          <span v-if="copied.complex">Copied</span>
+          <span v-else>Copy Text</span>
         </button>
         <span
           class="heart-icon"
           :class="{ liked: liked.complex, completed: liked.complex }"
           @click="!liked.complex && toggleLike('complex')"
         >
-          <span v-if="!liked.complex">✅</span>
-          <span v-else>❤️</span>
+          <img
+            v-if="!liked.complex"
+            :src="like_icon"
+            alt="Like icon"
+            class="like-svg"
+          />
+          <span v-else class="heart">❤️</span>
         </span>
       </div>
     </div>
@@ -59,6 +69,8 @@
 
 <script lang="ts">
 import { defineComponent, ref, type PropType } from 'vue';
+import { supabase } from '../utils/supabase';
+import like_icon from '../assets/like_icon.svg';
 
 export default defineComponent({
   name: 'ResponseDisplay',
@@ -83,7 +95,8 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const backendPort = import.meta.env.VITE_BACKEND_PORT || '3000';
+    const BACKEND_URL =
+      import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
     const copied = ref<{ simple: boolean; complex: boolean }>({
       simple: false,
       complex: false,
@@ -112,7 +125,6 @@ export default defineComponent({
           tooltip.value[type] = null;
         }, 2000);
       } catch (error) {
-        console.error('Failed to copy:', error);
         tooltip.value[type] = 'Failed to copy!';
       }
     };
@@ -125,42 +137,43 @@ export default defineComponent({
 
     const toggleLike = async (type: 'simple' | 'complex') => {
       if (!props.userId) {
-        console.error('❌ User not logged in. Missing userId.');
         return;
       }
 
-      const payload = {
-        descriptionType: type,
-        descriptionText: props.responseText[type],
-        descriptionOrigin: props.responseText.description_origin,
-        subjects: props.responseText.subjects,
-        targetAudience: props.responseText.targetAudience,
-      };
-
       try {
-        const response = await fetch(
-          `http://localhost:${backendPort}/like-description`,
-          {
-            method: 'POST',
-            credentials: 'include', // 🔥 Ensures cookies are sent
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-          }
-        );
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to save like');
+        // Fetch session token
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
+        if (sessionError || !sessionData?.session?.access_token) {
+          throw new Error('User session not found or expired');
         }
 
-        const data = await response.json();
-        console.log('✅ Like saved:', data);
+        const payload = {
+          descriptionType: type,
+          descriptionText: props.responseText[type],
+          descriptionOrigin: props.responseText.description_origin,
+          subjects: props.responseText.subjects,
+          targetAudience: props.responseText.targetAudience,
+          userId: props.userId,
+        };
+
+        const response = await fetch(`${BACKEND_URL}/like-description`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`API error: ${errorText}`);
+        }
 
         liked.value[type] = true;
       } catch (error) {
-        console.error('❌ Error saving like:', error);
+        throw error;
       }
     };
 
@@ -171,32 +184,62 @@ export default defineComponent({
       resetTooltip,
       liked,
       toggleLike,
+      like_icon,
     };
   },
 });
 </script>
 
 <style scoped>
+h3 {
+  text-align: left;
+}
+/* Like icon styling */
+.like-svg {
+  width: 20px; /* Adjust size as needed */
+  height: 20px;
+  cursor: pointer;
+  transition: opacity 0.4s ease-out, transform 0.3s ease-in-out;
+}
+
+/* Fade Out Effect on Click */
+.heart-icon.completed .like-svg {
+  opacity: 0;
+  transform: scale(0.7);
+  pointer-events: none; /* Prevent further clicks */
+}
+
+/* Optional: Slight pop animation for heart */
+.heart {
+  display: inline-block;
+  animation: pop 0.3s ease-in-out;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .response-display {
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background-color: #f9f9f9;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 10px 15px;
+  border: 2px solid #c3d9ed;
+  border-radius: 8px;
+  background-color: var(--bg-color);
   text-align: center;
   max-width: 600px;
   margin: 20px auto;
 }
 
+/* Headings */
 h2 {
-  color: #007bff;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   margin-bottom: 10px;
-}
-
-.alt-text-section {
-  margin-top: 15px;
-  position: relative;
 }
 
 h3 {
@@ -212,27 +255,24 @@ p {
 }
 
 /* Copy Button */
+/* Ensure the tooltip is positioned relative to the button */
 button {
-  margin-top: 8px;
-  padding: 6px 12px;
-  font-size: 0.9rem;
-  border: none;
-  border-radius: 4px;
-  background-color: #007bff;
+  position: relative; /* Ensure tooltip aligns with button */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border-radius: 5px;
+  background-color: var(--bg-button);
   color: white;
   cursor: pointer;
-  transition: background 0.3s;
-  position: relative;
 }
 
-button:hover {
-  background-color: #0056b3;
-}
-
-/* Tooltip */
+/* Tooltip - now properly positioned */
 .tooltip {
   position: absolute;
-  top: -25px;
+  bottom: 120%; /* Pushes tooltip above the button */
   left: 50%;
   transform: translateX(-50%);
   background-color: black;
@@ -240,8 +280,16 @@ button:hover {
   padding: 5px 10px;
   font-size: 0.8rem;
   border-radius: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
   white-space: nowrap;
+}
+
+/* Show tooltip on hover */
+button:hover .tooltip {
   opacity: 0.9;
+  visibility: visible;
 }
 
 /* Heart Icon */
@@ -263,5 +311,11 @@ button:hover {
   justify-content: center;
   gap: 10px;
   margin-top: 8px;
+}
+
+@media (min-width: 768px) {
+  .response-display {
+    padding: 20px 100px;
+  }
 }
 </style>

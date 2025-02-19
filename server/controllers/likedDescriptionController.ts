@@ -1,234 +1,121 @@
 import { Context } from 'koa';
-import { supabase } from '../supabase';
+import { getSupabaseClient } from '../supabase'; // ✅ Use the correct import
 
-// Save liked description
-// export const saveLikedDescription = async (ctx: Context) => {
-//   try {
-//     console.log('🔍 Checking authentication...');
-//     const authHeader = ctx.request.headers.authorization;
-
-//     if (!authHeader) {
-//       console.error('❌ Missing authentication token');
-//       ctx.status = 401;
-//       ctx.body = { error: 'Unauthorized: Missing authentication token' };
-//       return;
-//     }
-
-//     // Extract token from "Bearer <token>"
-//     const token = authHeader.replace('Bearer ', '').trim();
-
-//     console.log('🔑 Extracted token:', token);
-
-//     // ✅ Verify user session
-//     const {
-//       data: { user },
-//       error: authError,
-//     } = await supabase.auth.getUser(token);
-
-//     if (authError || !user) {
-//       console.error('❌ Authentication failed:', authError);
-//       ctx.status = 401;
-//       ctx.body = {
-//         error: 'Unauthorized: Invalid token or user session not found',
-//         details: authError?.message || authError,
-//       };
-//       return;
-//     }
-
-//     console.log('✅ Authenticated user:', user.id);
-
-//     // ✅ Get the request body
-
-//     const {
-//       descriptionType,
-//       descriptionText,
-//       descriptionOrigin,
-//       subjects,
-//       targetAudience,
-//     } = ctx.request.body;
-
-//     if (
-//       !descriptionType ||
-//       !descriptionText ||
-//       !descriptionOrigin ||
-//       !subjects ||
-//       !targetAudience
-//     ) {
-//       console.error('❌ Missing required fields:', {
-//         descriptionType,
-//         descriptionText,
-//         descriptionOrigin,
-//         subjects,
-//         targetAudience,
-//       });
-//       ctx.status = 400;
-//       ctx.body = { error: 'Bad Request: Missing required fields' };
-//       return;
-//     }
-
-//     console.log('📝 Saving liked description:', {
-//       user_id: user.id,
-//       descriptionType,
-//       descriptionText,
-//       descriptionOrigin,
-//       subjects,
-//       targetAudience,
-//     });
-
-//     // ✅ Insert into Supabase
-//     const { data, error } = await supabase.from('liked_descriptions').insert([
-//       {
-//         user_id: user.id, // Ensure user_id matches the authenticated user
-//         description_type: descriptionType,
-//         description_text: descriptionText,
-//         description_origin: descriptionOrigin, // Fix field name
-//         subjects: subjects,
-//         target_audience: targetAudience,
-//       },
-//     ]);
-
-//     if (error) {
-//       console.error('🔥 Supabase Error on INSERT:', error);
-//       throw error;
-//     }
-
-//     console.log('✅ Description saved successfully:', data);
-
-//     ctx.status = 200;
-//     ctx.body = { message: 'Description saved successfully', data };
-//   } catch (error: any) {
-//     console.error('🔥 Unexpected Server Error:', error);
-//     ctx.status = 500;
-//     ctx.body = {
-//       error: 'Internal Server Error: Error saving description',
-//       details: error.message || error,
-//     };
-//   }
-// };
+// ✅ Define request body type
+interface LikedDescriptionRequest {
+  descriptionType: string;
+  descriptionText: string;
+  descriptionOrigin: string;
+  subjects: string;
+  targetAudience: string;
+}
 
 export const saveLikedDescription = async (ctx: Context) => {
   try {
     console.log('🔍 Checking authentication...');
 
-    // Retrieve token from HTTP-only cookie
-    const token = ctx.cookies.get('supabase_token');
+    const user = ctx.state.user;
+    const token = ctx.headers.authorization?.split(' ')[1];
 
-    if (!token) {
-      console.error('❌ No authentication token found in cookies');
+    if (!user || !user.id || !token) {
+      console.error('❌ User session missing: likedDescriptionController');
       ctx.status = 401;
-      ctx.body = { error: 'Unauthorized: No authentication token found' };
+      ctx.body = { error: 'Unauthorized: User session not found' };
       return;
     }
 
-    console.log('🔑 Extracted token from cookies:', token);
+    console.log('✅ Authenticated user');
 
-    // Verify user session
-    const { data, error: authError } = await supabase.auth.getUser(token);
-    const user = data?.user; // ✅ Correctly extracting `user`
-
-    if (authError || !user) {
-      console.error('❌ Authentication failed:', authError);
-      ctx.status = 401;
-      ctx.body = {
-        error: 'Unauthorized: Invalid session token',
-        details: authError?.message || authError,
-      };
-      return;
-    }
-
-    console.log('✅ Authenticated user:', user.id);
-
-    // Get the request body
-    const {
-      descriptionType,
-      descriptionText,
-      descriptionOrigin,
-      subjects,
-      targetAudience,
-    } = ctx.request.body;
-
+    const body = ctx.request.body as Partial<LikedDescriptionRequest>;
     if (
-      !descriptionType ||
-      !descriptionText ||
-      !descriptionOrigin ||
-      !subjects ||
-      !targetAudience
+      !body.descriptionType ||
+      !body.descriptionText ||
+      !body.descriptionOrigin ||
+      !body.subjects ||
+      !body.targetAudience
     ) {
-      console.error('❌ Missing required fields:', {
-        descriptionType,
-        descriptionText,
-        descriptionOrigin,
-        subjects,
-        targetAudience,
-      });
+      console.error('❌ Missing required fields:', body);
       ctx.status = 400;
       ctx.body = { error: 'Bad Request: Missing required fields' };
       return;
     }
 
-    console.log('📝 Saving liked description:', {
-      user_id: user.id,
-      descriptionType,
-      descriptionText,
-      descriptionOrigin,
-      subjects,
-      targetAudience,
-    });
+    console.log('📝 Preparing to insert into Supabase');
 
-    // Insert into Supabase
-    const { data: insertData, error } = await supabase
+    // ✅ Use Supabase with the user's token
+    const supabaseClient = getSupabaseClient(token);
+
+    const { data, error } = await supabaseClient
       .from('liked_descriptions')
       .insert([
         {
-          user_id: user.id, // Ensure user_id matches the authenticated user
-          description_type: descriptionType,
-          description_text: descriptionText,
-          description_origin: descriptionOrigin, // Fix field name
-          subjects: subjects,
-          target_audience: targetAudience,
+          user_id: user.id,
+          description_type: body.descriptionType,
+          description_text: body.descriptionText,
+          description_origin: body.descriptionOrigin,
+          subjects: body.subjects,
+          target_audience: body.targetAudience,
         },
       ]);
 
     if (error) {
-      console.error('🔥 Supabase Error on INSERT:', error);
+      console.error('🔥 Supabase INSERT Error:', error);
       throw error;
     }
 
-    console.log('✅ Description saved successfully:', insertData);
+    console.log('✅ Insert successful:', data);
 
-    ctx.status = 200;
-    ctx.body = { message: 'Description saved successfully', data: insertData };
-  } catch (error: any) {
+    ctx.status = 201;
+    ctx.body = { message: 'Description saved successfully', data };
+  } catch (error: unknown) {
     console.error('🔥 Unexpected Server Error:', error);
     ctx.status = 500;
     ctx.body = {
       error: 'Internal Server Error: Error saving description',
-      details: error.message || error,
+      details: (error as Error).message || error,
     };
   }
 };
 
 export const getLikedDescriptions = async (ctx: Context) => {
-  const userId = ctx.params.userId;
-
-  if (!userId) {
-    ctx.status = 400;
-    ctx.body = { error: 'User ID is required' };
-    return;
-  }
-
   try {
-    const { data, error } = await supabase
+    console.log(
+      '🔍 Checking authentication for fetching liked descriptions...'
+    );
+
+    // ✅ Extract authenticated user
+    const user = ctx.state.user;
+    const token = ctx.headers.authorization?.split(' ')[1];
+
+    if (!user || !user.id || !token) {
+      ctx.status = 401;
+      ctx.body = { error: 'Unauthorized: User session not found' };
+      return;
+    }
+
+    // ✅ Use Supabase with the user's token
+    const supabaseClient = getSupabaseClient(token);
+
+    const { data: likedDescriptions, error } = await supabaseClient
       .from('liked_descriptions')
       .select('*')
-      .eq('user_id', userId);
+      .eq('user_id', user.id);
 
-    if (error) throw error;
+    if (error) {
+      console.error('🔥 Supabase Error on SELECT:', error);
+      throw error;
+    }
+
+    console.log('✅ Liked descriptions retrieved successfully.');
 
     ctx.status = 200;
-    ctx.body = { data };
-  } catch (error) {
+    ctx.body = { data: likedDescriptions };
+  } catch (error: unknown) {
+    console.error('🔥 Unexpected Server Error:', error);
     ctx.status = 500;
-    ctx.body = { error: 'Error fetching liked descriptions', details: error };
+    ctx.body = {
+      error: 'Error fetching liked descriptions',
+      details: (error as Error).message || error,
+    };
   }
 };
