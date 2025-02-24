@@ -16,6 +16,10 @@ import {
   handleGoogleOAuthCallback,
 } from './controllers/googleOAuthController';
 
+interface CustomError extends Error {
+  status?: number;
+}
+
 const app = new Koa();
 const router = new Router();
 
@@ -26,6 +30,31 @@ if (!process.env.SUPABASE_JWT_SECRET) {
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const PORT = process.env.PORT || 3000;
 
+//global error handling
+
+app.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (error: unknown) {
+    // Ensure we have an Error object
+    const err: Error =
+      error instanceof Error ? error : new Error('Unknown error');
+    // Cast error to CustomError so we can access status if it exists
+    const customError = error as CustomError;
+    const status = customError.status || 500;
+
+    // Add security headers even for error responses
+    ctx.set(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self' https://apis.google.com; style-src 'self'; img-src 'self' data: https:; connect-src 'self'; font-src 'self' https: data:; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+    );
+
+    ctx.status = status;
+    ctx.body = err.message;
+    ctx.app.emit('error', err, ctx);
+  }
+});
+
 // Set various security headers
 app.use(helmet());
 
@@ -34,8 +63,8 @@ app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", 'https://apis.google.com'],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", 'https://apis.google.com'], //"'unsafe-inline'"
+      styleSrc: ["'self'"], //"'unsafe-inline'"
       imgSrc: ["'self'", 'data:', 'https:'],
       connectSrc: ["'self'"],
       fontSrc: ["'self'", 'https:', 'data:'],
