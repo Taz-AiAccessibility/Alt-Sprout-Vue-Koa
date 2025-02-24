@@ -1,158 +1,138 @@
-import Koa, { Context, Next } from 'koa';
+import Koa, { Context } from 'koa';
 import Router from '@koa/router';
+import path from 'path';
+import helmet from 'koa-helmet';
 import cors from '@koa/cors';
-import koaBody from 'koa-body';
-import session from 'koa-session';
-import passport, { User } from './auth';
-import { supabase } from './supabase';
-
+import serve from 'koa-static';
+import jwt from 'koa-jwt';
+import bodyparser from '@koa/bodyparser';
+import likedDescriptionRoutes from './routes/likedDescriptionRoutes';
+import { isAuthenticated } from './auth';
 import { parseUserQuery } from './controllers/userQueryController';
 import { openAiImageProcessing } from './controllers/imageProcessingController';
 import { queryOpenAI } from './controllers/openAiAltTextController';
+import {
+  handleGoogleOAuthLogin,
+  handleGoogleOAuthCallback,
+} from './controllers/googleOAuthController';
 
-import likedDescriptionRoutes from './routes/likedDescriptionRoutes';
-
-const FRONTEND_URL = process.env.VITE_FRONTEND_URL || 'http://localhost:5173';
+interface CustomError extends Error {
+  status?: number;
+}
 
 const app = new Koa();
 const router = new Router();
 
-app.keys = [process.env.SESSION_SECRET!];
+if (!process.env.SUPABASE_JWT_SECRET) {
+  throw new Error('❌ Missing SUPABASE_JWT_SECRET. Server cannot start.');
+}
 
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const PORT = process.env.PORT || 3000;
+
+//global error handling
+
+app.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (error: unknown) {
+    // Ensure we have an Error object
+    const err: Error =
+      error instanceof Error ? error : new Error('Unknown error');
+    // Cast error to CustomError so we can access status if it exists
+    const customError = error as CustomError;
+    const status = customError.status || 500;
+
+    // Add security headers even for error responses
+    ctx.set(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self' https://apis.google.com; style-src 'self'; img-src 'self' data: https:; connect-src 'self'; font-src 'self' https: data:; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+    );
+
+    ctx.status = status;
+    ctx.body = err.message;
+    ctx.app.emit('error', err, ctx);
+  }
+});
+
+// Set various security headers
+app.use(helmet());
+
+// Set CSP with frame-ancestors
 app.use(
-  cors({
-    origin: process.env.VITE_FRONTEND_URL || 'http://localhost:5173', // Update this for production
-    credentials: true, // Allows cookies to be sent
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", 'https://apis.google.com'], //"'unsafe-inline'"
+      styleSrc: ["'self'"], //"'unsafe-inline'"
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", 'https:', 'data:'],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"], // Prevents your site from being framed
+      // Optionally, if you need to allow framing from specific origins, list them here.
+      // e.g., frameAncestors: ["'self'", "https://trusted.com"],
+      upgradeInsecureRequests: [],
+    },
   })
 );
 
-app.use(koaBody());
+// Over kill, and may conflict with frameAncestors if we want to used specified iframe approval
+app.use(helmet.frameguard({ action: 'deny' }));
 
+// CORS Setup
 app.use(
-  session(
-    {
-      key: 'koa.sess', // Default session key
-      maxAge: 86400000, // 1 day session
-      renew: true, // Auto-renew session
-      rolling: true, // Reset expiration on each request
-    },
-    app
-  )
-);
-// Initialize passport
-app.use(passport.initialize());
-// Use passport session
-app.use(passport.session());
-
-// Authentication Middleware
-const isAuthenticated = async (ctx: Context, next: Next) => {
-  if (ctx.isAuthenticated()) {
-    return next();
-  } else {
-    ctx.status = 401;
-    ctx.body = { message: 'Unauthorized: Please log in first' };
-  }
-};
-
-// Google OAuth Login Route (No Authentication Required)
-router.get(
-  '/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
+  cors({
+    origin: FRONTEND_URL,
+    credentials: true,
+    allowHeaders: ['Content-Type', 'Authorization'],
+    exposeHeaders: ['Authorization'],
+  })
 );
 
-router.get('/auth/google/callback', async (ctx: Context, next) => {
-  return passport.authenticate(
-    'google',
-    async (err: any, user: User, info: any) => {
-      if (err || !user) {
-        ctx.redirect(FRONTEND_URL);
-        return;
-      }
-      await ctx.login(user);
-      ctx.redirect(
-        `${FRONTEND_URL}?user=${encodeURIComponent(JSON.stringify(user))}`
-      );
-    }
-  )(ctx, next);
-});
+app.use(bodyparser());
 
-router.get('/user-session', async (ctx) => {
-  console.log('🔍 Checking session for user...');
+// Handle static privacy-policy and terms-of-service pages
+app.use(serve(path.join(__dirname, 'public')));
 
-  if (ctx.isAuthenticated() && ctx.state.user) {
-    console.log('✅ User in session:', ctx.state.user);
+// Middleware to Verify JWT
+app.use(
+  jwt({
+    secret: process.env.SUPABASE_JWT_SECRET!,
+    algorithms: ['HS256'],
+  }).unless({
+    path: [
+      /^\/auth\/google/,
+      /^\/auth\/google\/callback/,
+      /^\/privacy-policy/,
+      /^\/terms-of-service/,
+    ],
+  })
+);
 
-    // Fetch Supabase session token
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
-
-    if (error || !session) {
-      ctx.cookies.set('supabase_token', '', { maxAge: 0 }); // Clear token
-      ctx.body = { user: null };
-      return;
-    }
-
-    console.log('✅  SESSION TOKEN:', session.access_token);
-
-    const user = {
-      id: ctx.state.user.id,
-      name: ctx.state.user.name,
-      avatar_url: ctx.state.user.avatar_url,
-    };
-
-    // 🔒 Securely store the token in HTTP-Only cookie
-    ctx.cookies.set('supabase_token', session.access_token, {
-      httpOnly: true, // Prevents JavaScript access
-      secure: process.env.NODE_ENV === 'production', // Ensures HTTPS in production
-      sameSite: 'lax', // Protects against CSRF
-      maxAge: 60 * 60 * 1000, // 1 hour expiration
-    });
-
-    ctx.body = { user }; // Return only user info (No token)
-  } else {
-    console.log('❌ No user session found.');
-    ctx.cookies.set('supabase_token', '', { maxAge: 0 }); // Clear token
-    ctx.body = { user: null };
-  }
-});
-
-router.get('/logout', async (ctx) => {
-  if (ctx.isAuthenticated()) {
-    ctx.logout();
-    ctx.session = {}; // Clears session
-    ctx.cookies.set('supabase_token', '', { maxAge: 0 }); // 🔒 Clears the HTTP-only cookie
-    ctx.body = { message: 'Logged out successfully' };
-    console.log('✅ User logged out successfully');
-  } else {
-    ctx.body = { message: 'No active session' };
-  }
-});
-
-// Protected API Route (Requires Authentication)
+// Process Alt Text Request
 router.post(
   '/alt-text',
-  isAuthenticated, // Ensure user is logged in before processing request
+  isAuthenticated,
+  // isAuthenticated,
   parseUserQuery,
   openAiImageProcessing,
   queryOpenAI,
   async (ctx: Context) => {
     ctx.status = 200;
     ctx.body = ctx.state.analysisResult;
-    console.log('✅ Context Body:', ctx.body);
   }
 );
 
-// Use router middleware
-app.use(router.routes()).use(router.allowedMethods());
-app
+// OAuth Routes
+router.get('/auth/google', handleGoogleOAuthLogin);
+router.get('/auth/google/callback', handleGoogleOAuthCallback);
+router
   .use(likedDescriptionRoutes.routes())
   .use(likedDescriptionRoutes.allowedMethods());
 
-// Start server
-// might need to change env variable to just PORT for build
-const PORT = process.env.VITE_BACKEND_PORT || 3000; // Render dynamically assigns a port
-app.listen(PORT, () => {
-  console.log(`🚀 Koa server running on http://localhost:${PORT}`);
-});
+app.use(router.routes()).use(router.allowedMethods());
+
+app.listen(PORT, () =>
+  console.log(`🚀 Server running on http://localhost:${PORT}`)
+);

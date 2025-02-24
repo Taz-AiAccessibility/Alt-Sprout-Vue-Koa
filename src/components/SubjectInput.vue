@@ -1,14 +1,12 @@
 <template>
-  <Fragment>
-    <label for="subjects">Subjects:</label>
-    <input
-      id="subjects"
-      type="text"
-      v-model="localSubjects"
-      @input="updateSubjects"
-      placeholder="Enter subjects, comma-separated"
-    />
-  </Fragment>
+  <label for="subjects">Subjects:</label>
+  <input
+    id="subjects"
+    type="text"
+    v-model="localSubjects"
+    @input="updateSubjects"
+    placeholder="Enter subjects, comma-separated"
+  />
 </template>
 
 <script lang="ts">
@@ -48,9 +46,13 @@ export default defineComponent({
   margin-bottom: 20px;
 }
 label {
-  margin-right: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+
+  text-align: left;
 }
 input {
+  background: var(--bg-color);
   padding: 5px;
   width: 300px;
   margin: 10px;
