@@ -1,80 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap');
+
+/* 🔹 Define Global Variables */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --font-family: 'Noto Sans', sans-serif;
+  --text-color: #303030;
+  --text-color-button: #f8f8ff;
+  --bg-button: #494784;
+  --bg-button-hover: #535bf2;
+  --bg-color: #f8f8ff;
+  --line-height: 1.5;
+  --font-weight: 400;
+}
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* Apply Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* Prevents width issues */
+}
 
+/* Full-Screen Layout */
+html,
+body {
+  font-family: var(--font-family);
+  line-height: var(--line-height);
+  font-weight: var(--font-weight);
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden; /* Prevents horizontal scroll */
+
+  /* Optimized Text Rendering */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-html,
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
+/* App Container */
 #app {
-  background-color: #242424;
-  min-height: 100vh; /* Ensures full-page height */
+  min-height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  background-color: var(--bg-color);
+  text-align: center;
 }
 
+/* Ensure the main content grows to push the footer down */
+#main-container {
+  flex: 1; /* Makes the content expand to push the footer down */
+}
+
+/* Links */
 a {
   font-weight: 500;
   color: #646cff;
-  text-decoration: inherit;
+  text-decoration: none;
 }
 a:hover {
   color: #535bf2;
 }
 
-body {
-  margin: 0;
-}
-
+/* Buttons */
 button {
   border-radius: 8px;
   border: 1px solid transparent;
-  margin: 5px;
+  margin: 10px 0;
   padding: 0.6em 1.2em;
-  font-size: 1em;
+  font-size: 1rem;
   font-weight: 400;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--bg-button);
+  color: var(--text-color-button);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: background-color 0.3s;
+  width: 100%; /* Full width on mobile */
+  max-width: 300px;
 }
+
 button:hover {
-  border-color: #646cff;
+  background-color: var(--bg-button-hover);
 }
-button:focus,
-button:focus-visible {
+button:focus {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-#app {
-  /* max-width: 1280px; */
-  text-align: center;
-  margin: auto;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* Media Query for Larger Screens */
+@media (min-width: 768px) {
 }
