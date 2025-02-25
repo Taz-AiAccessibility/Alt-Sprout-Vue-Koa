@@ -31,7 +31,6 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const PORT = process.env.PORT || 3000;
 
 //global error handling
-
 app.use(async (ctx, next) => {
   try {
     await next();
@@ -44,6 +43,13 @@ app.use(async (ctx, next) => {
     const status = customError.status || 500;
 
     // Add security headers even for error responses
+    // I believe we can remove setting the header
+    // This is a proxy server and Render.com handles the header settings
+    /** 
+    - /* - Content-Security-Policy -  default-src 'self';  script-src 'self' https://apis.google.com;  style-src 'self' https://fonts.googleapis.com;  img-src 'self' data: blob: https:;  connect-src 'self' https://afziltusqfvlckjbgkil.supabase.co https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://api.openai.com https://api.altsprout.dance;  font-src 'self' https://fonts.gstatic.com;  object-src 'none';  frame-ancestors 'none';  base-uri 'self';  form-action 'self';  upgrade-insecure-requests
+    - /* - Strict-Transport-Security - max-age=31536000; includeSubDomains; preload
+    - /* - Cache-Control - Cache-Control: no-cache, no-store, must-revalidate, private Pragma: no-cache Expires: 0
+    **/
     ctx.set(
       'Content-Security-Policy',
       "default-src 'self'; script-src 'self' https://apis.google.com; style-src 'self'; img-src 'self' data: https:; connect-src 'self'; font-src 'self' https: data:; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
@@ -59,6 +65,7 @@ app.use(async (ctx, next) => {
 app.use(helmet());
 
 // Set CSP with frame-ancestors
+// once again, I dont beleive we need this due to Render.com
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -114,7 +121,6 @@ app.use(
 router.post(
   '/alt-text',
   isAuthenticated,
-  // isAuthenticated,
   parseUserQuery,
   openAiImageProcessing,
   queryOpenAI,

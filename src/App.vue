@@ -46,10 +46,11 @@
           <article class="info-box">
             <h3>Why It Matters</h3>
             <p>
-              High-quality alt text ensures accessibility, inclusivity, and
-              better engagement across digital spaces. By leveraging AI, Alt
-              Sprout Dance streamlines the alt text creation process, making it
-              faster and more effective.
+              Alt text is not just a descriptive add-on—it’s a powerful tool
+              that drives accessibility, inclusivity, and SEO success. Alt
+              Sprout Dance leverages generative AI to streamline the alt text
+              creation process, turning a once tedious task into a lively
+              performance that elevates your digital content.
             </p>
           </article>
         </section>
@@ -162,45 +163,67 @@ export default {
       await checkSupabaseSession(user);
     });
 
-    // Secure API Request Handling
+    // Function to handle form submission for generating alt text
     const handleSubmit = async () => {
+      // Indicate that the submission process is starting
       isLoading.value = true;
+
+      // Wait for the next DOM update cycle before proceeding
       await nextTick();
+
+      // Clear any previous error messages
       errorMessage.value = null;
 
       try {
-        // Ensure session is refreshed before making request
+        // Refresh the user session to ensure valid authentication
         const { data: sessionData, error: sessionError } =
           await supabase.auth.getSession();
 
+        // If there's an error fetching the session or the access token is missing, throw an error
         if (sessionError || !sessionData?.session?.access_token) {
           throw new Error('User session not found or expired');
         }
 
+        // Make a POST request to the backend alt-text API endpoint
         const response = await fetch(`${BACKEND_URL}/alt-text`, {
           method: 'POST',
           headers: {
+            // Specify JSON content in the request
             'Content-Type': 'application/json',
+            // Include the user's access token for authentication
             Authorization: `Bearer ${sessionData.session.access_token}`,
           },
+          // Send the necessary data in the request body as JSON
           body: JSON.stringify({
-            userUrl: formData.imageUrl,
-            imageContext: formData.subjects,
-            textContext: formData.targetAudience,
+            userUrl: formData.imageUrl, // The URL of the image to generate alt text for
+            imageContext: formData.subjects, // Context or description of the image's subjects
+            textContext: formData.targetAudience, // Intended target audience for the alt text
           }),
         });
 
+        // If the API response is not OK, extract the error text and throw an error
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`API error: ${response.statusText} - ${errorText}`);
         }
 
+        // Parse the successful response JSON data
         const data = await response.json();
+        // Save the alt text result to be displayed in the UI
         altTextResult.value = data;
+        // Hide the form after a successful alt text generation
         showForm.value = false;
-      } catch (error: any) {
-        errorMessage.value = error.message || 'Something went wrong';
+      } catch (error: unknown) {
+        // Narrow the error type and extract a message if possible
+        if (error instanceof Error) {
+          errorMessage.value = `Opps, ${
+            error.message.split(':', 1)[0]
+          }, maybe try again?`;
+        } else {
+          errorMessage.value = 'Something went wrong';
+        }
       } finally {
+        // Regardless of success or error, stop the loading indicator
         isLoading.value = false;
       }
     };
@@ -277,6 +300,7 @@ h2 {
 }
 
 .avatar {
+  margin-right: 7px;
   width: 40px;
   height: 40px;
   border-radius: 50%;

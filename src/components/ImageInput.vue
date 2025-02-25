@@ -34,7 +34,8 @@
     </article>
 
     <!-- Preview Image -->
-    <article v-if="previewImage" class="preview-container">
+    <span v-if="uploading" class="loader"></span>
+    <article v-if="previewImage && !uploading" class="preview-container">
       <img :src="previewImage" alt="Uploaded Preview" class="preview-image" />
     </article>
 
@@ -140,7 +141,6 @@ export default defineComponent({
           return null;
         }
 
-        uploading.value = true;
         const filePath = `uploads/${userId.value}/${Date.now()}-${file.name}`;
 
         // Upload file to Supabase
@@ -179,6 +179,8 @@ export default defineComponent({
     const handleFileUpload = async (event: Event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) return;
+
+      uploading.value = true;
 
       // Create a local preview URL (remains visible)
       previewImage.value = URL.createObjectURL(file);
@@ -286,6 +288,36 @@ input[type='file']::file-selector-button:hover {
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   object-fit: contain;
+}
+
+.loader {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #fff;
+  border-top: 3px solid #646cff; /* Primary color */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+/* Spinning animation */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Optional: Add a spinning effect */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Improve layout on larger screens */
