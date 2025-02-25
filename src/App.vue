@@ -156,10 +156,10 @@ export default {
     });
 
     onMounted(async () => {
-      console.log('🔍 Checking OAuth Redirect...');
+      // console.log('🔍 Checking OAuth Redirect...');
       await handleOAuthRedirect(user);
 
-      console.log('🔍 Checking Supabase Session...');
+      // console.log('🔍 Checking Supabase Session...');
       await checkSupabaseSession(user);
     });
 
