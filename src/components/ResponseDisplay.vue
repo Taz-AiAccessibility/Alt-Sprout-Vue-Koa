@@ -17,11 +17,11 @@
           <span v-if="copied.simple">Copied</span>
           <span v-else>Copy Text</span>
         </button>
-        <!-- !!!!!! add :disabled=liked.simple -->
         <span
           class="heart-icon"
           :class="{ liked: liked.simple, completed: liked.simple }"
           @click="!liked.simple && toggleLike('simple')"
+          :disabled="liked.simple"
         >
           <img
             v-if="!liked.simple"
@@ -53,6 +53,7 @@
           class="heart-icon"
           :class="{ liked: liked.complex, completed: liked.complex }"
           @click="!liked.complex && toggleLike('complex')"
+          :disabled="liked.complex"
         >
           <img
             v-if="!liked.complex"
