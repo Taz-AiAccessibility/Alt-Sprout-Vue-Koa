@@ -28,7 +28,7 @@ export async function handleOAuthRedirect(user: any) {
       return;
     }
 
-    console.log('✅ Supabase session set');
+    //console.log('✅ Supabase session set');
 
     // Verify session immediately
     const { data: sessionData, error: sessionError } =
@@ -39,7 +39,7 @@ export async function handleOAuthRedirect(user: any) {
       return;
     }
 
-    console.log('✅ Verified session: auth.ts');
+    //console.log('✅ Verified session: auth.ts');
 
     // Fetch user details after ensuring session exists
     await checkSupabaseSession(user);
@@ -53,7 +53,7 @@ export async function handleOAuthRedirect(user: any) {
 
 // Check if user is authenticated
 export const checkSupabaseSession = async (user: any) => {
-  console.log('🔍 Checking Supabase session...');
+  //console.log('🔍 Checking Supabase session...');
 
   const { data: sessionData, error: sessionError } =
     await supabase.auth.getSession();
@@ -63,7 +63,7 @@ export const checkSupabaseSession = async (user: any) => {
     return;
   }
 
-  console.log('✅ Session found');
+  //console.log('✅ Session found');
 
   // Fetch user details separately
   const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -73,7 +73,7 @@ export const checkSupabaseSession = async (user: any) => {
     return;
   }
 
-  console.log('✅ User data fetched');
+  //console.log('✅ User data fetched');
 
   // Update Vue's reactive `user` state
   user.value = {
@@ -82,7 +82,7 @@ export const checkSupabaseSession = async (user: any) => {
     avatar_url: userData.user.user_metadata?.avatar_url || '',
   };
 
-  console.log('✅ User state updated');
+  //console.log('✅ User state updated');
 };
 
 // Login function
@@ -92,14 +92,14 @@ export function loginWithGoogle() {
 
 // Logout function
 export async function logoutUser() {
-  console.log('🔍 Logging out user...');
+  //console.log('🔍 Logging out user...');
 
   const { error } = await supabase.auth.signOut();
 
   if (error) {
-    console.error('❌ Logout failed:', error);
+    //console.error('❌ Logout failed:', error);
   } else {
-    console.log('✅ Logout successful. Session cleared.');
+    // console.log('✅ Logout successful. Session cleared.');
   }
 
   window.location.href = '/';
