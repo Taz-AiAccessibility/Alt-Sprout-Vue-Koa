@@ -132,7 +132,7 @@
         It looks like you're viewing this site in the LinkedIn mobile app. For a
         better experience and to securely log in, please open this page in your
         device’s browser. Tap the three dots in the top right and select "Open
-        in Browser. Cheers!
+        in Browser". Cheers!
       </p>
       <button @click="closeOverlay">Cancel</button>
     </div>
