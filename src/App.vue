@@ -4,7 +4,8 @@
     <h1>Alt Sprout Dance</h1>
     <article id="auth-container">
       <nav v-if="!user.name" aria-label="Authentication">
-        <button @click="loginWithGoogle">Login with Google</button>
+        <!-- Changed from loginWithGoogle to handleLogin -->
+        <button @click="handleLogin">Login with Google</button>
       </nav>
       <section v-else class="user-info">
         <img v-if="user.avatar_url" :src="user.avatar_url" class="avatar" />
@@ -29,7 +30,8 @@
         <h2>Get Started</h2>
         <p>Start making that alt text dance!</p>
         <nav v-if="!user.name" aria-label="Authentication">
-          <button @click="loginWithGoogle">Login with Google</button>
+          <!-- Changed from loginWithGoogle to handleLogin -->
+          <button @click="handleLogin">Login with Google</button>
         </nav>
         <section id="info">
           <article class="info-box">
@@ -113,6 +115,21 @@
     <a :href="`${BACKEND_URL}/terms-of-service`">Terms of Service</a> |
     <a :href="`${BACKEND_URL}/privacy-policy`">Privacy Policy</a>
   </footer>
+
+  <!-- Overlay for LinkedIn in-app browser -->
+  <div v-if="showBrowserOverlay" class="overlay">
+    <div class="overlay-content">
+      <h2>Please Open in Your Browser</h2>
+      <p>
+        It looks like you're viewing this site in the LinkedIn mobile app. For a
+        better experience and to securely log in, please open this page in your
+        device’s browser. Tap the three dots in the top right and select "Open
+        in Browser."
+      </p>
+      <button @click="openInBrowser">Open in Browser</button>
+      <button @click="closeOverlay">Cancel</button>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -155,75 +172,77 @@ export default {
       targetAudience: '',
     });
 
-    onMounted(async () => {
-      // console.log('🔍 Checking OAuth Redirect...');
-      await handleOAuthRedirect(user);
+    // Overlay and LinkedIn detection state
+    const showBrowserOverlay = ref(false);
+    const isLinkedInApp = ref(false);
 
-      // console.log('🔍 Checking Supabase Session...');
+    onMounted(async () => {
+      if (typeof window !== 'undefined' && window.navigator) {
+        const ua = window.navigator.userAgent || '';
+        // Check for LinkedIn mobile app user agent
+        if (ua.includes('LinkedIn')) {
+          isLinkedInApp.value = true;
+        }
+      }
+      await handleOAuthRedirect(user);
       await checkSupabaseSession(user);
     });
 
-    // Function to handle form submission for generating alt text
+    // Modified login function that shows overlay if in LinkedIn mobile app
+    const handleLogin = () => {
+      if (isLinkedInApp.value) {
+        showBrowserOverlay.value = true;
+      } else {
+        loginWithGoogle();
+      }
+    };
+
+    const openInBrowser = () => {
+      window.open(window.location.href, '_blank');
+    };
+
+    const closeOverlay = () => {
+      showBrowserOverlay.value = false;
+    };
+
     const handleSubmit = async () => {
-      // Indicate that the submission process is starting
       isLoading.value = true;
-
-      // Wait for the next DOM update cycle before proceeding
       await nextTick();
-
-      // Clear any previous error messages
       errorMessage.value = null;
-
       try {
-        // Refresh the user session to ensure valid authentication
         const { data: sessionData, error: sessionError } =
           await supabase.auth.getSession();
-
-        // If there's an error fetching the session or the access token is missing, throw an error
         if (sessionError || !sessionData?.session?.access_token) {
           throw new Error('User session not found or expired');
         }
-
-        // Make a POST request to the backend alt-text API endpoint
         const response = await fetch(`${BACKEND_URL}/alt-text`, {
           method: 'POST',
           headers: {
-            // Specify JSON content in the request
             'Content-Type': 'application/json',
-            // Include the user's access token for authentication
             Authorization: `Bearer ${sessionData.session.access_token}`,
           },
-          // Send the necessary data in the request body as JSON
           body: JSON.stringify({
-            userUrl: formData.imageUrl, // The URL of the image to generate alt text for
-            imageContext: formData.subjects, // Context or description of the image's subjects
-            textContext: formData.targetAudience, // Intended target audience for the alt text
+            userUrl: formData.imageUrl,
+            imageContext: formData.subjects,
+            textContext: formData.targetAudience,
           }),
         });
-
-        // If the API response is not OK, extract the error text and throw an error
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`API error: ${response.statusText} - ${errorText}`);
         }
-
-        // Parse the successful response JSON data
         const data = await response.json();
-        // Save the alt text result to be displayed in the UI
         altTextResult.value = data;
-        // Hide the form after a successful alt text generation
         showForm.value = false;
       } catch (error: unknown) {
-        // Narrow the error type and extract a message if possible
         if (error instanceof Error) {
-          errorMessage.value = `Opps, ${
+          errorMessage.value = `Oops, ${
             error.message.split(':', 1)[0]
           }, maybe try again?`;
         } else {
           errorMessage.value = 'Something went wrong';
         }
       } finally {
-        // Regardless of success or error, stop the loading indicator
         isLoading.value = false;
       }
     };
@@ -250,7 +269,7 @@ export default {
       isLoading,
       errorMessage,
       altTextResult,
-      loginWithGoogle,
+      handleLogin,
       logout: logoutUser,
       toggleForm,
       resetForm,
@@ -259,13 +278,16 @@ export default {
       gitHubIcon,
       logo,
       BACKEND_URL,
+      showBrowserOverlay,
+      openInBrowser,
+      closeOverlay,
     };
   },
 };
 </script>
 
 <style>
-/*  Base Styles for Mobile */
+/* Base Styles for Mobile */
 header#main-header {
   width: 100%;
   padding: 12px 20px;
@@ -341,45 +363,34 @@ textarea {
 }
 
 fieldset {
-  width: 100%; /*  Ensures fieldset stays within the form */
-  max-width: 100%; /* Prevents it from expanding too far */
+  width: 100%;
+  max-width: 100%;
   border: 2px solid #c3d9ed;
   padding: 12px;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  box-sizing: border-box; /* Ensures padding doesn't break layout */
-  margin: 0 auto; /* Keeps it centered inside the form */
+  box-sizing: border-box;
+  margin: 0 auto;
 }
 
 .submit-container {
   display: flex;
   align-items: center;
-  gap: 10px; /* Space between button & loader */
+  gap: 10px;
 }
 
 .loader {
   width: 20px;
   height: 20px;
   border: 3px solid #fff;
-  border-top: 3px solid #646cff; /* Primary color */
+  border-top: 3px solid #646cff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   display: inline-block;
 }
 
-/* Spinning animation */
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Optional: Add a spinning effect */
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -514,7 +525,38 @@ footer {
   }
 }
 
-/* Responsive Styling */
-@media (min-width: 768px) {
+/* Overlay Styles */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 90%;
+}
+
+.overlay-content h2 {
+  margin-bottom: 1rem;
+}
+
+.overlay-content p {
+  margin-bottom: 1.5rem;
+}
+
+.overlay-content button {
+  margin: 0 0.5rem;
+  padding: 0.5rem 1rem;
 }
 </style>
