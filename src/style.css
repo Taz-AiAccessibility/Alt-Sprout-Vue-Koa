@@ -65,10 +65,11 @@ a:hover {
 }
 
 /* Buttons */
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;
-  margin: 10px 0;
+  margin: 10px 5px;
   padding: 0.6em 1.2em;
   font-size: 1rem;
   font-weight: 400;
@@ -84,6 +85,7 @@ button {
 button:hover {
   background-color: var(--bg-button-hover);
 }
+
 button:focus {
   outline: 4px auto -webkit-focus-ring-color;
 }
