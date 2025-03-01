@@ -120,13 +120,22 @@
   <div v-if="showBrowserOverlay" class="overlay">
     <div class="overlay-content">
       <h2>Please Open in Your Browser</h2>
+      <p>👋 Hi there, thank you for checking out Alt Sprout Dance!</p>
       <p>
         It looks like you're viewing this site in the LinkedIn mobile app. For a
         better experience and to securely log in, please open this page in your
-        device’s browser. Tap the three dots in the top right and select "Open
-        in Browser."
+        device’s browser. Either click the "Open in Browser" button bellow or
+        tap the three dots in the top right and select "Open in Browser.
+        Cheers!"
       </p>
-      <button @click="openInBrowser">Open in Browser</button>
+      <a
+        href="https://altsprout.dance/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Open in Browser
+      </a>
+
       <button @click="closeOverlay">Cancel</button>
     </div>
   </div>
@@ -197,9 +206,9 @@ export default {
       }
     };
 
-    const openInBrowser = () => {
-      window.open(window.location.href, '_blank');
-    };
+    // const openInBrowser = () => {
+    //   window.open(window.location.href, '_blank');
+    // };
 
     const closeOverlay = () => {
       showBrowserOverlay.value = false;
@@ -279,7 +288,7 @@ export default {
       logo,
       BACKEND_URL,
       showBrowserOverlay,
-      openInBrowser,
+      //openInBrowser,
       closeOverlay,
     };
   },
