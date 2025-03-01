@@ -173,8 +173,8 @@ export default {
     });
 
     // Overlay and LinkedIn detection state
-    const showBrowserOverlay = ref(true);
-    const isLinkedInApp = ref(true);
+    const showBrowserOverlay = ref(false);
+    const isLinkedInApp = ref(false);
 
     onMounted(async () => {
       if (typeof window !== 'undefined' && window.navigator) {
