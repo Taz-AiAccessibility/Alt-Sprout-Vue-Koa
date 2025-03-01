@@ -119,13 +119,20 @@
   <!-- Overlay for LinkedIn in-app browser -->
   <div v-if="showBrowserOverlay" class="overlay">
     <div class="overlay-content">
-      <h2>Please Open in Your Browser</h2>
+      <h2>
+        Please Open in Your Browser via
+        <span class="menu-dots">
+          "<span></span>
+          <span></span>
+          <span></span>"
+        </span>
+      </h2>
       <p>👋 Hi there, thank you for checking out Alt Sprout Dance!</p>
       <p>
         It looks like you're viewing this site in the LinkedIn mobile app. For a
         better experience and to securely log in, please open this page in your
         device’s browser. Tap the three dots in the top right and select "Open
-        in Browser. Cheers!"
+        in Browser. Cheers!
       </p>
       <button @click="closeOverlay">Cancel</button>
     </div>
@@ -553,5 +560,22 @@ footer {
 .overlay-content button {
   margin: 0 0.5rem;
   padding: 0.5rem 1rem;
+}
+
+.menu-dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px; /* Adjust spacing between dots as needed */
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.menu-dots span {
+  display: block;
+  width: 6px; /* Adjust size as needed */
+  height: 6px;
+  background-color: #888; /* Use a color that matches LinkedIn's style */
+  border-radius: 50%;
 }
 </style>
