@@ -124,18 +124,9 @@
       <p>
         It looks like you're viewing this site in the LinkedIn mobile app. For a
         better experience and to securely log in, please open this page in your
-        device’s browser. Either click the "Open in Browser" button bellow or
-        tap the three dots in the top right and select "Open in Browser.
-        Cheers!"
+        device’s browser. Tap the three dots in the top right and select "Open
+        in Browser. Cheers!"
       </p>
-      <a
-        href="https://altsprout.dance/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Open in Browser
-      </a>
-
       <button @click="closeOverlay">Cancel</button>
     </div>
   </div>
@@ -182,8 +173,8 @@ export default {
     });
 
     // Overlay and LinkedIn detection state
-    const showBrowserOverlay = ref(false);
-    const isLinkedInApp = ref(false);
+    const showBrowserOverlay = ref(true);
+    const isLinkedInApp = ref(true);
 
     onMounted(async () => {
       if (typeof window !== 'undefined' && window.navigator) {
@@ -205,10 +196,6 @@ export default {
         loginWithGoogle();
       }
     };
-
-    // const openInBrowser = () => {
-    //   window.open(window.location.href, '_blank');
-    // };
 
     const closeOverlay = () => {
       showBrowserOverlay.value = false;
@@ -288,7 +275,6 @@ export default {
       logo,
       BACKEND_URL,
       showBrowserOverlay,
-      //openInBrowser,
       closeOverlay,
     };
   },
