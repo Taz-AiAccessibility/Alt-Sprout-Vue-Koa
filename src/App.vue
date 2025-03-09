@@ -20,40 +20,82 @@
       <section v-if="!user.name" key="welcome" class="welcome-message">
         <h2>Welcome to Alt Sprout Dance!</h2>
         <p class="intro">
-          Alt Sprout Dance is an AI-powered alt text generator designed to
-          create meaningful and accessible image descriptions. Developed in
+          Alt Sprout Dance is an <b>AI-powered</b> alt text generator designed
+          to create meaningful and accessible image descriptions. Developed in
           collaboration with
           <a href="https://www.smuinballet.org/">Smuin Contemporary Ballet</a>,
           it enhances the quality and efficiency of content creation for
           visually rich platforms.
         </p>
-        <h2>Get Started</h2>
-        <p>Start making that alt text dance!</p>
-        <nav v-if="!user.name" aria-label="Authentication">
-          <!-- Changed from loginWithGoogle to handleLogin -->
-          <button @click="handleLogin">Login with Google</button>
-        </nav>
         <section id="info">
           <article class="info-box">
             <h3>How It Works</h3>
-            <ul>
+            <ul class="info-content">
               <li><strong>1.</strong> Log in with your Google account</li>
               <li><strong>2.</strong> Upload a dance image</li>
               <li>
-                <strong>3.</strong> Provide subject details & target audience
+                <img
+                  class="demo-image"
+                  src="https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/maggie-carey.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvbWFnZ2llLWNhcmV5LnBuZyIsImlhdCI6MTc0MTQ4Nzk0NywiZXhwIjoxNzczMDIzOTQ3fQ.y_K4L-KICvYd-38LtyynHuVXxlSvn4EJjFJ1bvFDH70"
+                />
               </li>
-              <li><strong>4.</strong> Submit to generate alt text</li>
+              <li>
+                <strong>3.</strong> Provide subject details: "Maggie Carey"
+              </li>
+              <li>
+                <strong>4.</strong> Select target audience: "Ballet Lovers"
+              </li>
+              <li><strong>5.</strong> Submit to generate eloquent alt text!</li>
             </ul>
+            <h3>Output</h3>
+
+            <p class="info-content">
+              <b>Simple Description:</b> "Ballet dancer Maggie Carey strikes a
+              dynamic pose, wearing a deep burgundy costume against a soft
+              purple background, embodying elegance and strength."
+            </p>
+            <p class="info-content">
+              <b>Complex Description:</b> "In this captivating image, Maggie
+              Carey, a professional ballet dancer, showcases elegance and
+              strength mid-pose against a backdrop of soft, vibrant purples. Her
+              arms are extended gracefully overhead, framing her focused face
+              that radiates determination. The delicate layers of her flowing
+              costume swirl around her, emphasizing the fluidity of her
+              movements. Gentle lighting casts intricate shadows on the
+              backdrop, enhancing her poised silhouette. Maggie's passionate
+              expression invites ballet lovers into the enchanting world of
+              dance, reflecting the artistry and discipline inherent in ballet."
+            </p>
           </article>
           <article class="info-box">
             <h3>Why It Matters</h3>
-            <p>
+            <p class="info-content">
               Alt text is not just a descriptive add-on—it’s a powerful tool
-              that drives accessibility, inclusivity, and SEO success. Alt
-              Sprout Dance leverages generative AI to streamline the alt text
-              creation process, turning a once tedious task into a lively
-              performance that elevates your digital content.
+              that drives <b>accessibility and SEO success</b>. Alt Sprout Dance
+              leverages generative AI to streamline the alt text creation
+              process, turning a once tedious task into a lively performance
+              that elevates your digital content.
             </p>
+            <article>
+              <h3>Alt Sprout Dance in action!</h3>
+              <video
+                class="info-content"
+                controls="false"
+                width="100%"
+                height="auto"
+                name="Video Name"
+              >
+                <source
+                  src="https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/demo-vidoe-trimmed.mov?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvZGVtby12aWRvZS10cmltbWVkLm1vdiIsImlhdCI6MTc0MTQ4NzU3MCwiZXhwIjoxNzczMDIzNTcwfQ.7Slo0NRrdG72WCBwUC2eTpGlS3KsPxGLUA3CDL_tZ0I  "
+                />
+              </video>
+              <h3>Get Started</h3>
+              <p>Start making that alt text dance!</p>
+              <nav v-if="!user.name" aria-label="Authentication">
+                <!-- Changed from loginWithGoogle to handleLogin -->
+                <button @click="handleLogin">Login with Google</button>
+              </nav>
+            </article>
           </article>
         </section>
       </section>
@@ -391,6 +433,18 @@ fieldset {
   border-radius: 50%;
   animation: spin 1s linear infinite;
   display: inline-block;
+}
+
+.demo-image {
+  max-height: 300px;
+}
+
+.demo-video {
+  max-height: 300px;
+}
+
+.info-content {
+  margin: 20px 0;
 }
 
 @keyframes spin {
