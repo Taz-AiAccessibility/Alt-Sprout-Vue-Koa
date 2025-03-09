@@ -6,7 +6,7 @@
 
 # Demo Video
 
-![Watch Demo Video](https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/demo-vidoe-x2.gif?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvZGVtby12aWRvZS14Mi5naWYiLCJpYXQiOjE3NDE0OTY0MzIsImV4cCI6MTc3MzAzMjQzMn0.aLEUjikGJ1rn0DynaUVvB8kOx6tfkoJXrr88PlaIQ5s)
+![Watch Demo Video](https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/demo-vidoe-trimmed-video-speedx4.5.gif?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvZGVtby12aWRvZS10cmltbWVkLXZpZGVvLXNwZWVkeDQuNS5naWYiLCJpYXQiOjE3NDE0OTcxNjMsImV4cCI6MTc3MzAzMzE2M30.2Rh-yrpjECRFNgQIAboAMZJEwiMR9GMrbBRm7AvJSss)
 
 ## ✨ Key Features
 
