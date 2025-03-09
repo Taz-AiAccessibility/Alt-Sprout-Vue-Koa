@@ -4,6 +4,10 @@
 
 **Alt Sprout Dance** is an AI-powered alt text generator that leverages OpenAI to produce rich, meaningful, and accessible image descriptions. Designed for performance, accessibility, and scalability, it integrates **Vue.js**, **Koa.js**, and **TypeScript** to deliver a seamless user experience for digital creators.
 
+# Demo Video
+
+![Watch Demo Video](https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/demo-vidoe-x2.gif?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvZGVtby12aWRvZS14Mi5naWYiLCJpYXQiOjE3NDE0OTY0MzIsImV4cCI6MTc3MzAzMjQzMn0.aLEUjikGJ1rn0DynaUVvB8kOx6tfkoJXrr88PlaIQ5s)
+
 ## ✨ Key Features
 
 - **AI-Powered Alt Text:** Automatically generate descriptive alt text using image analysis and user context.
