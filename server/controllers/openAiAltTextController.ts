@@ -20,17 +20,23 @@ export const queryOpenAI = async (ctx: Context, next: Next) => {
     return;
   }
 
-  const prompt = `Directions: 
-  You are a professional at creating alt text for img tags within CSS code. This alt text will be used by screen-readers to describe images to people who are visually impaired. Start by reading the ${imageAnalysis}, this is the description of the image. Then, read the ${imageContext}, if provided, this is further context about the image provided by the user. Finally, read the ${textContext}, if provided, this is information about what audience the alt text is for. While the alt text is always for people who are visually impaired, this will tell you what the targeted demographic is. What you should consider is that if the text is for children, then use simpler more elementary language, if it is for a more professional demographic, then use more corporate language, for artists then use more descriptive, poetic language, etc- if ${textContext} is an empty string then assume it is for a general audience and maintain a descriptive, informative, but professional tone.
-  Format of your response:
-  Once you have read the image analysis, respond with the alt text. Format the output as a JSON object with the properties simple and complex. The value of simple should be a string with a less detailed version of the alt text, and the value of complex should be a string with a more detailed version of the alt text. This gives the user two options, based on their use case. You should not include any other words or punctuation other than the valid JSON object in your response. Do not include line breaks.
-`;
+  //const model = 'gpt-3.5-turbo';
+  // base64 required for turbo. This change is required by the model's image input specification. You'll need to fetch the image data, convert it to a base64 string, and then send it with the proper prefix before making your request.
+  const model = 'gpt-4o-mini';
+
+  const altTextPrompt = `Guidelines:
+1. You are an accomplished alt text writer for accessibility.
+2. Consider the analysis provided: "${imageAnalysis}".
+3. Factor in the additional context: "${imageContext}" regarding the dancers.
+4. Adjust for the target audience: "${textContext}".
+5. Produce a JSON object with two keys: "simple" (a short, clear alt text) and "complex" (a more detailed alt text). 
+Ensure your response is only a valid JSON object, with no extra characters or line breaks.`;
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: model,
       messages: [
-        { role: 'system', content: prompt },
+        { role: 'system', content: altTextPrompt },
         { role: 'user', content: `${imageContext}, ${textContext}` },
       ],
     });

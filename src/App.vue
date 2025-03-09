@@ -4,7 +4,8 @@
     <h1>Alt Sprout Dance</h1>
     <article id="auth-container">
       <nav v-if="!user.name" aria-label="Authentication">
-        <button @click="loginWithGoogle">Login with Google</button>
+        <!-- Changed from loginWithGoogle to handleLogin -->
+        <button @click="handleLogin">Login with Google</button>
       </nav>
       <section v-else class="user-info">
         <img v-if="user.avatar_url" :src="user.avatar_url" class="avatar" />
@@ -19,38 +20,82 @@
       <section v-if="!user.name" key="welcome" class="welcome-message">
         <h2>Welcome to Alt Sprout Dance!</h2>
         <p class="intro">
-          Alt Sprout Dance is an AI-powered alt text generator designed to
-          create meaningful and accessible image descriptions. Developed in
+          Alt Sprout Dance is an <b>AI-powered</b> alt text generator designed
+          to create meaningful and accessible image descriptions. Developed in
           collaboration with
           <a href="https://www.smuinballet.org/">Smuin Contemporary Ballet</a>,
           it enhances the quality and efficiency of content creation for
           visually rich platforms.
         </p>
-        <h2>Get Started</h2>
-        <p>Start making that alt text dance!</p>
-        <nav v-if="!user.name" aria-label="Authentication">
-          <button @click="loginWithGoogle">Login with Google</button>
-        </nav>
         <section id="info">
           <article class="info-box">
             <h3>How It Works</h3>
-            <ul>
+            <ul class="info-content">
               <li><strong>1.</strong> Log in with your Google account</li>
               <li><strong>2.</strong> Upload a dance image</li>
               <li>
-                <strong>3.</strong> Provide subject details & target audience
+                <img
+                  class="demo-image"
+                  src="https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/maggie-carey.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvbWFnZ2llLWNhcmV5LnBuZyIsImlhdCI6MTc0MTQ4Nzk0NywiZXhwIjoxNzczMDIzOTQ3fQ.y_K4L-KICvYd-38LtyynHuVXxlSvn4EJjFJ1bvFDH70"
+                />
               </li>
-              <li><strong>4.</strong> Submit to generate alt text</li>
+              <li>
+                <strong>3.</strong> Provide subject details: "Maggie Carey"
+              </li>
+              <li>
+                <strong>4.</strong> Select target audience: "Ballet Lovers"
+              </li>
+              <li><strong>5.</strong> Submit to generate eloquent alt text!</li>
             </ul>
+            <h3>Output</h3>
+
+            <p class="info-content">
+              <b>Simple Description:</b> "Ballet dancer Maggie Carey strikes a
+              dynamic pose, wearing a deep burgundy costume against a soft
+              purple background, embodying elegance and strength."
+            </p>
+            <p class="info-content">
+              <b>Complex Description:</b> "In this captivating image, Maggie
+              Carey, a professional ballet dancer, showcases elegance and
+              strength mid-pose against a backdrop of soft, vibrant purples. Her
+              arms are extended gracefully overhead, framing her focused face
+              that radiates determination. The delicate layers of her flowing
+              costume swirl around her, emphasizing the fluidity of her
+              movements. Gentle lighting casts intricate shadows on the
+              backdrop, enhancing her poised silhouette. Maggie's passionate
+              expression invites ballet lovers into the enchanting world of
+              dance, reflecting the artistry and discipline inherent in ballet."
+            </p>
           </article>
           <article class="info-box">
             <h3>Why It Matters</h3>
-            <p>
-              High-quality alt text ensures accessibility, inclusivity, and
-              better engagement across digital spaces. By leveraging AI, Alt
-              Sprout Dance streamlines the alt text creation process, making it
-              faster and more effective.
+            <p class="info-content">
+              Alt text is not just a descriptive add-on—it’s a powerful tool
+              that drives <b>accessibility and SEO success</b>. Alt Sprout Dance
+              leverages generative AI to streamline the alt text creation
+              process, turning a once tedious task into a lively performance
+              that elevates your digital content.
             </p>
+            <article>
+              <h3>Alt Sprout Dance in action!</h3>
+              <video
+                class="info-content"
+                controls="false"
+                width="100%"
+                height="auto"
+                name="Video Name"
+              >
+                <source
+                  src="https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/demo-vidoe-trimmed.mov?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvZGVtby12aWRvZS10cmltbWVkLm1vdiIsImlhdCI6MTc0MTQ4NzU3MCwiZXhwIjoxNzczMDIzNTcwfQ.7Slo0NRrdG72WCBwUC2eTpGlS3KsPxGLUA3CDL_tZ0I  "
+                />
+              </video>
+              <h3>Get Started</h3>
+              <p>Start making that alt text dance!</p>
+              <nav v-if="!user.name" aria-label="Authentication">
+                <!-- Changed from loginWithGoogle to handleLogin -->
+                <button @click="handleLogin">Login with Google</button>
+              </nav>
+            </article>
           </article>
         </section>
       </section>
@@ -112,6 +157,28 @@
     <a :href="`${BACKEND_URL}/terms-of-service`">Terms of Service</a> |
     <a :href="`${BACKEND_URL}/privacy-policy`">Privacy Policy</a>
   </footer>
+
+  <!-- Overlay for LinkedIn in-app browser -->
+  <div v-if="showBrowserOverlay" class="overlay">
+    <div class="overlay-content">
+      <h2>
+        Please Open in Your Browser via
+        <span class="menu-dots">
+          "<span></span>
+          <span></span>
+          <span></span>"
+        </span>
+      </h2>
+      <p>👋 Hi there, thank you for checking out Alt Sprout Dance!</p>
+      <p>
+        It looks like you're viewing this site in the LinkedIn mobile app. For a
+        better experience and to securely log in, please open this page in your
+        device’s browser. Tap the three dots in the top right and select "Open
+        in Browser". Cheers!
+      </p>
+      <button @click="closeOverlay">Cancel</button>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -154,29 +221,45 @@ export default {
       targetAudience: '',
     });
 
-    onMounted(async () => {
-      console.log('🔍 Checking OAuth Redirect...');
-      await handleOAuthRedirect(user);
+    // Overlay and LinkedIn detection state
+    const showBrowserOverlay = ref(false);
+    const isLinkedInApp = ref(false);
 
-      console.log('🔍 Checking Supabase Session...');
+    onMounted(async () => {
+      if (typeof window !== 'undefined' && window.navigator) {
+        const ua = window.navigator.userAgent || '';
+        // Check for LinkedIn mobile app user agent
+        if (ua.includes('LinkedIn')) {
+          isLinkedInApp.value = true;
+        }
+      }
+      await handleOAuthRedirect(user);
       await checkSupabaseSession(user);
     });
 
-    // Secure API Request Handling
+    // Modified login function that shows overlay if in LinkedIn mobile app
+    const handleLogin = () => {
+      if (isLinkedInApp.value) {
+        showBrowserOverlay.value = true;
+      } else {
+        loginWithGoogle();
+      }
+    };
+
+    const closeOverlay = () => {
+      showBrowserOverlay.value = false;
+    };
+
     const handleSubmit = async () => {
       isLoading.value = true;
       await nextTick();
       errorMessage.value = null;
-
       try {
-        // Ensure session is refreshed before making request
         const { data: sessionData, error: sessionError } =
           await supabase.auth.getSession();
-
         if (sessionError || !sessionData?.session?.access_token) {
           throw new Error('User session not found or expired');
         }
-
         const response = await fetch(`${BACKEND_URL}/alt-text`, {
           method: 'POST',
           headers: {
@@ -189,17 +272,21 @@ export default {
             textContext: formData.targetAudience,
           }),
         });
-
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`API error: ${response.statusText} - ${errorText}`);
         }
-
         const data = await response.json();
         altTextResult.value = data;
         showForm.value = false;
-      } catch (error: any) {
-        errorMessage.value = error.message || 'Something went wrong';
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          errorMessage.value = `Oops, ${
+            error.message.split(':', 1)[0]
+          }, maybe try again?`;
+        } else {
+          errorMessage.value = 'Something went wrong';
+        }
       } finally {
         isLoading.value = false;
       }
@@ -227,7 +314,7 @@ export default {
       isLoading,
       errorMessage,
       altTextResult,
-      loginWithGoogle,
+      handleLogin,
       logout: logoutUser,
       toggleForm,
       resetForm,
@@ -236,13 +323,15 @@ export default {
       gitHubIcon,
       logo,
       BACKEND_URL,
+      showBrowserOverlay,
+      closeOverlay,
     };
   },
 };
 </script>
 
 <style>
-/*  Base Styles for Mobile */
+/* Base Styles for Mobile */
 header#main-header {
   width: 100%;
   padding: 12px 20px;
@@ -277,6 +366,7 @@ h2 {
 }
 
 .avatar {
+  margin-right: 7px;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -317,45 +407,46 @@ textarea {
 }
 
 fieldset {
-  width: 100%; /*  Ensures fieldset stays within the form */
-  max-width: 100%; /* Prevents it from expanding too far */
+  width: 100%;
+  max-width: 100%;
   border: 2px solid #c3d9ed;
   padding: 12px;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  box-sizing: border-box; /* Ensures padding doesn't break layout */
-  margin: 0 auto; /* Keeps it centered inside the form */
+  box-sizing: border-box;
+  margin: 0 auto;
 }
 
 .submit-container {
   display: flex;
   align-items: center;
-  gap: 10px; /* Space between button & loader */
+  gap: 10px;
 }
 
 .loader {
   width: 20px;
   height: 20px;
   border: 3px solid #fff;
-  border-top: 3px solid #646cff; /* Primary color */
+  border-top: 3px solid #646cff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   display: inline-block;
 }
 
-/* Spinning animation */
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.demo-image {
+  max-height: 300px;
 }
 
-/* Optional: Add a spinning effect */
+.demo-video {
+  max-height: 300px;
+}
+
+.info-content {
+  margin: 20px 0;
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -490,7 +581,55 @@ footer {
   }
 }
 
-/* Responsive Styling */
-@media (min-width: 768px) {
+/* Overlay Styles */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 90%;
+}
+
+.overlay-content h2 {
+  margin-bottom: 1rem;
+}
+
+.overlay-content p {
+  margin-bottom: 1.5rem;
+}
+
+.overlay-content button {
+  margin: 0 0.5rem;
+  padding: 0.5rem 1rem;
+}
+
+.menu-dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px; /* Adjust spacing between dots as needed */
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.menu-dots span {
+  display: block;
+  width: 6px; /* Adjust size as needed */
+  height: 6px;
+  background-color: #888; /* Use a color that matches LinkedIn's style */
+  border-radius: 50%;
 }
 </style>
