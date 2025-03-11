@@ -34,7 +34,7 @@
               <li><strong>1.</strong> Log in with your Google account</li>
               <li><strong>2.</strong> Upload a dance image</li>
               <li>
-                <figure>
+                <figure class="demo-figure">
                   <img
                     class="demo-image"
                     src="https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/maggie-carey.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvbWFnZ2llLWNhcmV5LnBuZyIsImlhdCI6MTc0MTQ4Nzk0NywiZXhwIjoxNzczMDIzOTQ3fQ.y_K4L-KICvYd-38LtyynHuVXxlSvn4EJjFJ1bvFDH70"
@@ -441,17 +441,23 @@ fieldset {
   display: inline-block;
 }
 
+.demo-figure {
+  max-width: 300px;
+  margin: auto 0;
+}
+
 .demo-image {
-  max-height: 300px;
+  max-width: 100%;
+  height: auto;
 }
 
 .demo-video {
   max-height: 300px;
 }
 
-.info-content {
+/* .info-content {
   margin: 20px 0;
-}
+} */
 
 .photo-credit {
   color: gray;
