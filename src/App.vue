@@ -37,7 +37,7 @@
                 <figure class="demo-figure">
                   <img
                     class="demo-image"
-                    src="https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/maggie-carey.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvbWFnZ2llLWNhcmV5LnBuZyIsImlhdCI6MTc0MTQ4Nzk0NywiZXhwIjoxNzczMDIzOTQ3fQ.y_K4L-KICvYd-38LtyynHuVXxlSvn4EJjFJ1bvFDH70"
+                    src="https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/maggie-carey.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvbWFnZ2llLWNhcmV5LnBuZyIsImlhdCI6MTc0NTYyNjI1NywiZXhwIjoxODQwMjM0MjU3fQ.nikytWIXEZRIggEiJA5F3y0BbHtF-xk6qKke2VQDCVg"
                     alt="Ballet dancer Maggie Carey strikes a dynamic pose, wearing a deep burgundy costume against a soft purple background, embodying elegance and strength."
                   />
                   <figcaption class="photo-credit">
