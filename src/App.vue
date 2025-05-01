@@ -92,7 +92,7 @@
                 name="Video Name"
               >
                 <source
-                  src="https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/demo-vidoe-trimmed.mov?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvZGVtby12aWRvZS10cmltbWVkLm1vdiIsImlhdCI6MTc0MTQ4NzU3MCwiZXhwIjoxNzczMDIzNTcwfQ.7Slo0NRrdG72WCBwUC2eTpGlS3KsPxGLUA3CDL_tZ0I  "
+                  src="https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/Screen%20Recording%202025-03-08%20at%206.04.46%20PM.mov?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvU2NyZWVuIFJlY29yZGluZyAyMDI1LTAzLTA4IGF0IDYuMDQuNDYgUE0ubW92IiwiaWF0IjoxNzQ2MTI3OTA2LCJleHAiOjE4NDA3MzU5MDZ9.DRdw4Nni1WUjL2G3QxWErolo8-sFsW_eCVmfBfLUFAM"
                 />
               </video>
               <h3>Get Started</h3>
