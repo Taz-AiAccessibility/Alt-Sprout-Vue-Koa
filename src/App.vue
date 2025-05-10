@@ -8,7 +8,12 @@
         <button @click="handleLogin">Login with Google</button>
       </nav>
       <section v-else class="user-info">
-        <img v-if="user.avatar_url" :src="user.avatar_url" class="avatar" />
+        <img
+          v-if="user.avatar_url"
+          :src="user.avatar_url"
+          class="avatar"
+          aria-hidden="true"
+        />
         <nav>
           <button @click="logout">Logout</button>
         </nav>

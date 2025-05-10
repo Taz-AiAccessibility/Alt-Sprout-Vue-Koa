@@ -24,13 +24,35 @@ export const queryOpenAI = async (ctx: Context, next: Next) => {
   // base64 required for turbo. This change is required by the model's image input specification. You'll need to fetch the image data, convert it to a base64 string, and then send it with the proper prefix before making your request.
   const model = 'gpt-4o-mini';
 
+  //   const altTextPrompt = `Guidelines:
+  // 1. You are an accomplished alt text writer for accessibility.
+  // 2. Consider the analysis provided: "${imageAnalysis}".
+  // 3. Factor in the additional context: "${imageContext}" regarding the dancers.
+  // 4. Adjust for the target audience: "${textContext}".
+  // 5. Produce a JSON object with two keys: "simple" (a short, clear alt text) and "complex" (a more detailed alt text).
+  // Ensure your response is only a valid JSON object, with no extra characters or line breaks.`;
+
+  const tonePreference =
+    textContext === 'Dance Media' ? 'objective' : 'expressive';
+
+  console.log({ tonePreference });
+
   const altTextPrompt = `Guidelines:
-1. You are an accomplished alt text writer for accessibility.
+1. You are an accomplished alt-text writer for accessibility.
 2. Consider the analysis provided: "${imageAnalysis}".
 3. Factor in the additional context: "${imageContext}" regarding the dancers.
 4. Adjust for the target audience: "${textContext}".
-5. Produce a JSON object with two keys: "simple" (a short, clear alt text) and "complex" (a more detailed alt text). 
-Ensure your response is only a valid JSON object, with no extra characters or line breaks.`;
+5. Use a "${tonePreference}" tone:
+   - "objective": factual, avoid emotional or subjective words.
+   - "expressive": you may use richer, more evocative language.
+6. Produce a JSON object with two keys: "simple" (a short, clear alt text) and "complex" (a more detailed alt text). 
+Ensure your response is only a valid JSON object, with no extra characters or line breaks.
+7. Produce ONLY a valid JSON object with two keys:
+   {
+     "simple": string, 
+     "complex": string 
+   }
+No extra text, no markdown, no line breaks outside the JSON keys.`;
 
   try {
     const response = await openai.chat.completions.create({

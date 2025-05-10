@@ -2,6 +2,7 @@
   <div class="target-audience-input">
     <label for="audience">Target Audience:</label>
     <select id="audience" v-model="localAudience" @change="updateAudience">
+      <option value="Dance Media">Dance Media</option>
       <option value="Ballet Lovers">Ballet Lovers</option>
       <option value="Dance Enthusiasts">Dance Enthusiasts</option>
     </select>
@@ -21,7 +22,7 @@ export default defineComponent({
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
-    const localAudience = ref(props.modelValue || 'Ballet Lovers');
+    const localAudience = ref(props.modelValue || 'Dance Media');
 
     // Emit default value on component mount
     onMounted(() => {
@@ -33,7 +34,7 @@ export default defineComponent({
       () => props.modelValue,
       (newValue) => {
         if (newValue !== localAudience.value) {
-          localAudience.value = newValue || 'Ballet Lovers';
+          localAudience.value = newValue || 'Dance Media';
         }
       },
       { immediate: true } // Ensures update happens on first render
