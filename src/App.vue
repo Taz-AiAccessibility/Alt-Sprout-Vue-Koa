@@ -42,7 +42,7 @@
                 <figure class="demo-figure">
                   <img
                     class="demo-image"
-                    src="https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/maggie-carey.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvbWFnZ2llLWNhcmV5LnBuZyIsImlhdCI6MTc0NTYyNjI1NywiZXhwIjoxODQwMjM0MjU3fQ.nikytWIXEZRIggEiJA5F3y0BbHtF-xk6qKke2VQDCVg"
+                    src="./assets/maggie-carey.png"
                     alt="Ballet dancer Maggie Carey strikes a dynamic pose, wearing a deep burgundy costume against a soft purple background, embodying elegance and strength."
                   />
                   <figcaption class="photo-credit">
@@ -88,18 +88,6 @@
               that elevates your digital content.
             </p>
             <article>
-              <h3>Alt Sprout Dance in action!</h3>
-              <video
-                class="info-content"
-                controls="false"
-                width="100%"
-                height="auto"
-                name="Video Name"
-              >
-                <source
-                  src="https://afziltusqfvlckjbgkil.supabase.co/storage/v1/object/sign/assets/Screen%20Recording%202025-03-08%20at%206.04.46%20PM.mov?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJhc3NldHMvU2NyZWVuIFJlY29yZGluZyAyMDI1LTAzLTA4IGF0IDYuMDQuNDYgUE0ubW92IiwiaWF0IjoxNzQ2MTI3OTA2LCJleHAiOjE4NDA3MzU5MDZ9.DRdw4Nni1WUjL2G3QxWErolo8-sFsW_eCVmfBfLUFAM"
-                />
-              </video>
               <h3>Get Started</h3>
               <p>Start making that alt text dance!</p>
               <nav v-if="!user.name" aria-label="Authentication">
